@@ -1,0 +1,140 @@
+<div class="w960 cart-width involved-parties-container user-page-involved-party-container fiori3-cart-tab-container">
+    <div class="row cart" id="involvedPartiesContainer">
+        <div class="row-offcanvas row-offcanvas-left quote-page-main-container collapsed-actions-visible" data-bind="visible: isInitialized" style="display: none;">
+            <div class="clearfix" data-bind="css: { 'cart-view-mode': isInViewMode }">
+                <div class="clearfix"></div>
+                <div class="row cart-content-involved-party clearfix">
+                    <scripting-messages></scripting-messages>
+                    @Html.PartialWithNameAsComment("Sections/Tabs")
+                    <div class="involved-party-container">
+                        <div id="businessPartnersViewHeader" class="business-partners-view-header" role="toolbar">
+                            <h3 class="involved-party-label" id="titleBusinessPartners" data-bind="text: title"></h3>
+                            <div class="business-partners-view-actions">
+                                <!-- ko if: allowCreatingBusinessPartnersOnQuotes -->
+                                <!-- DO NOT ALLOW CREATION OF BP ON QUOTE CPQ2-209
+                                <button id="addInvolvedPartyButton" data-bind="visible: !isInViewMode()" class="dropdown-toggle btn btn-primary fiori3-btn-primary" data-toggle="dropdown" aria-expanded="false">@Translation.GetJS("BusinessPartners.CreateNewBusinessPartners")<span class="sap-icon add-involved-party-dropdown-icon">&#xe1ef;</span></button>
+                                  <ul data-bind="visible: !isInViewMode()" role="tablist" id="involvedPartyToggleContainer" class="dropdown-menu add-involved-party-dropdown-value">
+                                      <li role="tab"><a id="existingInvolvedParty" href="#" data-bind="click: openBusinessPartnerModal, executeOnEnter: openBusinessPartnerModal" onclick="$(this).tooltip('hide')">@Translation.GetJS("BusinessPartners.Add.AddExisting")</a></li>
+                                      <li role="tab"><a id="newInvolvedParty" href="#" data-bind="click: addInvolvedParty, executeOnEnter: addInvolvedParty" onclick="$(this).tooltip('hide')">@Translation.GetJS("BusinessPartners.Add.AddNew")</a></li>
+                                  </ul>
+                                -->
+                                  <!-- /ko-->
+                                  <!-- ko ifnot: allowCreatingBusinessPartnersOnQuotes -->
+                                  <button id="addInvolvedPartyButton" class="btn btn-primary fiori3-btn-primary" data-bind="click: openBusinessPartnerModal, executeOnEnter: openBusinessPartnerModal, visible: !isInViewMode()" onclick="$(this).tooltip('hide')">@Translation.GetJS("BusinessPartners.Add.AddExisting")</button>
+                                  <!-- /ko--> 
+                                <button id="deleteInvolvedPartyButton" class="fiori3-icon-button" data-bind="visible: !isInViewMode(), enable: $root.isDeleteEnabled, click: $root.deleteInvolvedParties, tooltip: { title: '@Translation.GetJS("BusinessPartners.DeleteInvolvedParty")', autoClose: true, closeOnClick: true, placement: 'top auto', trigger: 'hover focus', container: 'body'}" onclick="$(this).tooltip('hide')">
+                                    <div class="sap-icon">&#xe03d;</div>
+                                </button>
+                                <button id="selectColumnLayoutButton" class="fiori3-icon-button" data-bind="click: selectColumnLayout, tooltip: { title: '@Translation.GetJS("BusinessPartners.Columns")', autoClose: true, closeOnClick: true, placement: 'top auto', trigger: 'hover focus', container: 'body' }" onclick="$(this).tooltip('hide')">
+                                    <div class="sap-icon">&#xe140;</div>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="involvedPartiesTable" class="involved-party-table cpq-scroll">
+                            <table id="no-more-tables" class="table data-structure-table fiori3-table">
+                                <thead>
+                                    <tr>
+                                    <!--
+                                    <th data-bind="visible: !isInViewMode()" id="involved-party-checkbox" class="involved-party-checkbox" scope="col">
+                                        <label class="fiori3-checkbox-group">
+                                            <span class="sr-only">@Translation.GetJS("InvolvedParties.SelectAll")</span>
+                                            <input type="checkbox" data-bind="click: $root.selectAllInvolvedParties, checked: $root.areAllInvolvedPartiesSelected" />
+                                            <span class="center-chekbox"></span>
+                                        </label>
+                                    </th>
+                                    -->
+                                    <th id="involved-party-partner-function" scope="col">
+                                        <span>@Translation.GetJS("BusinessPartners.PartnerFunction")</span>
+                                    </th>
+                                    <th id="involved-party-business-partner" scope="col">
+                                        <span>@Translation.GetJS("BusinessPartners.BusinessPartner")</span>
+                                    </th>
+                                    <!-- ko foreach: $root.selectedTranslations -->
+                                    <th id="involved-party-selected-tranlsations" scope="col">
+                                        <span data-bind="text: $data"></span>
+                                    </th>
+                                    <!-- /ko -->
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: { data: $root.involvedParties, as: 'involvedParty' }">
+                                    <tr>
+                                        <!--
+                                        <td class="involved-party-checkbox" data-bind="visible: !$root.isInViewMode()">
+                                            <label class="fiori3-checkbox-group">
+                                                <span class="sr-only">@Translation.GetJS("InvolvedParties.Select")</span>
+                                                <input type="checkbox" data-bind="value: involvedParty, checked: $root.selectedInvolvedParties" />
+                                                <span class="center-chekbox"></span>
+                                            </label>
+                                        </td>
+                                        -->
+                                        <td data-title="@Translation.GetJS("BusinessPartners.PartnerFunction")">
+                                            <!-- keep href attribute here, so this link is registered as focusable and accessible via return -->
+                                            <!-- ko if: involvedParty.blockedFromDeletion -->
+                                            <a href class="pointer" data-bind="attr: { id: 'involvedParty_' + involvedParty.id()}, html: involvedParty.partnerFunctionName + ' @Translation.GetJS("BusinessPartners.BlockedFromDeletion.Label")', click: function() { $root.editInvolvedParty(involvedParty, $root.isInViewMode)}"></a>
+                                            <!-- /ko -->
+                                            <!-- ko ifnot: involvedParty.blockedFromDeletion -->
+                                            <a href class="pointer" data-bind="attr: { id: 'involvedParty_' + involvedParty.id()}, html: involvedParty.partnerFunctionName, click: function() { $root.editInvolvedParty(involvedParty, $root.isInViewMode)}"></a>
+                                            <!-- /ko -->
+                                        </td>
+                                        <td data-title="@Translation.GetJS("BusinessPartners.BusinessPartner")">
+                                            <!-- ko if: involvedParty.hasBusinessPartnerAssigned -->
+                                            <span data-bind="text: involvedParty.name" class="left-text-align">
+                                            </span>
+                                            <!-- COMMENTED OUT TO NOT ALLOW USERS TO DELETE IP
+                                            <button class="fiori3-icon-button right-text-align" data-bind="visible: !$root.isInViewMode(), click: function() { $root.removeBusinessPartner(involvedParty)}, tooltip: { title: '@Translation.GetJS("BusinessPartners.DeleteBusinessPartners")', autoClose: true, closeOnClick: true, placement: 'top auto', trigger: 'hover focus', container: 'body' }, attr: {'id': 'removeBPButton_' + id() }" onclick="$(this).tooltip('hide')">
+                                                <span>&#xe03e;</span>
+                                            </button>
+                                            -->
+                                            <!-- /ko -->
+                                            <!-- ko ifnot: involvedParty.hasBusinessPartnerAssigned -->
+                                            <div class="fiori3-input-group" data-bind="attr: {'id': 'partnersSearchContainer_' + id() }">
+                                                <div class="fiori3-search-input-wrapper">
+                                                    <input aria-labelledby="involved-party-business-partner" class="form-control autoClosePopover" placeholder="@Translation.GetJS("BusinessPartners.InputPlaceHolder")" style="max-width: 270px;"
+                                                           data-bind="enable: !$root.isInViewMode(), attr: {'id': 'searchBusinessPartner_' + id() }, value: involvedParty.searchPartnerText, valueUpdate: 'afterkeyup', hasfocus: involvedParty.isSearchPartnersInFocus, popover: { templateId: 'InvolvedPartyPartnersPopover', trigger: 'manual', placement: 'bottom', container: 'body' }"/>
+                                                    <button class="fiori3-icon-button" data-bind="enable: !$root.isInViewMode(), tooltip: { title: '@Translation.GetJS("BusinessPartners.Add.AddExisting")'}, attr: {'id': 'searchBusinessPartnerButton_' + id() }, click: function() { $root.searchBusinessPartners(involvedParty)}, executeOnEnter: function() { $root.searchBusinessPartners(involvedParty) }" title='@Translation.GetJS("BusinessPartners.SearchBusinessPartners")'>
+                                                        <div class="sap-icon">&#xe1f3;</div>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <!-- /ko -->
+                                        </td>
+                                        <!-- ko foreach: { data: involvedParty.cells, as: 'cell' } -->
+                                        <td>
+                                            <div class="flex flex-between">
+                                                <span class="responsive-label" data-bind="text: $root.selectedTranslations()[$index()]"></span>
+                                                <span data-bind="text: cell.value"></span>
+                                            </div>
+                                        </td>
+                                        <!-- /ko -->
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div data-bind="if: $root.involvedPartiesExsist">
+                                <div class="no-involved-parties-container">
+                                    <div class="text-center no-business-partners">
+                                        <span data-bind="text: '@Translation.GetJS("BusinessPartners.NoBusinessPartners")'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @Html.Partial("~/Views/Cart/Templates/SelectColumnLayoutTemplate.cshtml")
+    @Html.Partial("~/Views/Cart/Templates/AddInvolvedPartyTemplate.cshtml")
+    @Html.Partial("~/Views/Cart/Templates/SearchBusinessPartnerTemplate.cshtml")
+</div>
+@Html.Partial("~/Views/Cart/Templates/InvolvedPartyCustomFieldTemplates.cshtml")
+@Html.Partial("~/Views/Cart/Templates/EditInvolvedPartyTemplate.cshtml")
+@Html.PartialWithNameAsComment("/Views/CartList/Dialogs/ReassignCartDialogTemplate.cshtml")
+@Html.PartialWithNameAsComment("/Views/Cart/Dialogs/CreatePartialOrderDialogTemplate.cshtml")
+@Html.PartialWithNameAsComment("Dialogs/UpgradeProductsProgressBarTemplate")
+@Html.PartialWithNameAsComment("EditablePagerTemplate")
+
+<script type="text/html" id="InvolvedPartyPartnersPopover">    
+    <ul tabindex="-1" id="partnersPopoverMenu" role="menu" class="involver-parties-search-user-list-container" data-bind="foreach: searchResult">
+        <li class="involved-parties-result-item" role="menuitem" data-bind="html: displayName, click: function() {$parent.addBusinessPartnerFromSearch($data)}, executeOnEnter: function() {$parent.addBusinessPartnerFromSearch($data, $parent.id())}" tabindex="0"></li>
+    </ul>
+</script>

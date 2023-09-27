@@ -1,0 +1,46 @@
+@using WebSite.Controllers
+<main class="w960">
+  <div class="row user-page-container custom-fields-page-container fiori3-cart-tab-container cart-content fiori3-cart-tab-container-with-footer" id="cartContainer">
+    <div class="row" data-bind="visible: isInitalized" style="display: none;">
+      <div data-bind="css: { 'cart-view-mode': isInViewMode }">
+        <div class="clearfix"></div>
+
+        @*Custom fields*@
+        <div class="clearfix">
+          <scripting-messages></scripting-messages>
+          @Html.PartialWithNameAsComment("Sections/Tabs")
+          <div id="customFieldsBox" class="box">
+            <div class="clearfix">
+              <div id="customFieldsContainer" data-bind="foreach: customFieldsAndQuoteTables" class="fiori3-custom-fields-container custom-fields custom-fields-with-footer">
+                <!-- ko if: ['ZQT_EccQuoteCreationDate', 'ZQT_EccQuoteNumber', 'ZQT_TenderType', 'ZQT_Currency', 'ZQT_TerritoryID', 'ZQT_TerritoryName', 'ZQT_MarketCode'].indexOf(name) !== -1 -->
+                  <div class="fiori3-input-group col-md-4 col-xs-12 clearfix">
+                    <label data-bind="html: label, attr: { for: $index() + '_' + id, id: 'Label_' + $index() + '_' + id }" style="display: inline-block;"></label>
+                    <pre class="cpq-scroll" data-bind="text: serverContent"></pre>
+                  </div>
+                <!--/ko -->
+                <!-- ko if: ['ZQT_EccQuoteCreationDate', 'ZQT_EccQuoteNumber', 'ZQT_TenderType', 'ZQT_Currency', 'ZQT_TerritoryID', 'ZQT_TerritoryName', 'ZQT_MarketCode'].indexOf(name) === -1 -->
+                  <!-- ko template: template -->
+                  <!--/ko -->
+                <!--/ko -->
+              </div>
+            </div>
+            <div class="cart-page-tab-footer" data-bind="visible: isSaveButtonAvailable() && !isInViewMode() && customFields().length > 0">
+              <button id="customFieldsSaveButton" class="btn btn-primary fiori3-btn-primary" data-bind="text: saveActionText, click: function () { save(false, null) } "></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+@Html.PartialWithNameAsComment("Templates/CartCustomFieldTemplates")
+@Html.PartialWithNameAsComment("/Views/CartList/Dialogs/ReassignCartDialogTemplate.cshtml")
+@Html.PartialWithNameAsComment("/Views/Cart/Dialogs/CreatePartialOrderDialogTemplate.cshtml")
+@Html.PartialWithNameAsComment("Dialogs/UpgradeProductsProgressBarTemplate")
+@if (CartController.HasQuoteTablesOnCurrentTab())
+{
+  @Html.PartialWithNameAsComment("Templates/CartTableTemplate")
+  @Html.PartialWithNameAsComment("Templates/CartTableCellTemplates")
+  @Html.PartialWithNameAsComment("EditablePagerTemplate")
+}

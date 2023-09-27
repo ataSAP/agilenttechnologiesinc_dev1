@@ -1,0 +1,88 @@
+﻿/* general styles */
+html {
+}
+
+BODY {
+}
+
+a img {
+}
+
+H1 {
+}
+
+H2 {
+}
+
+input#involvedPartyPartnerId.form-control,
+input#involvedPartyPrimaryIndustry.form-control,
+select#involvedPartyBusinessPartnerType.form-control,
+input#involvedPartyFormOfAddress,
+input#involvedPartyFirstName,
+input#involvedPartyLastName,
+input#involvedPartyMobilePhone,
+input#involvedPartyPhone,
+input#involvedPartyFax,
+input#involvedPartyEmailAddress,
+input#involvedPartyCorrespondenceLanguage,
+input#involvedPartyTimeZone,
+select#involvedPartyCountry,
+select#involvedPartyState,
+input#involvedPartyRegion,
+input#involvedPartyCityName,
+input#involvedPartyPostalCode,
+input#involvedPartyDistrict,
+input#involvedPartyPOBox,
+input#involvedPartyPOBoxPostalCode,
+input#involvedPartyAddressName,
+input#involvedPartyAddressAdditionalName,
+input#involvedPartyAddressName3,
+input#involvedPartyAddressName4,
+input#involvedPartyStreetPrefixName,
+input#involvedPartyAdditionalStreetPrefixName,
+input#involvedPartyAdditionalStreetSuffixName,
+input#involvedPartyStreetName,
+input#involvedPartyStreetSuffixName,
+input#involvedPartyHouseNumber,
+input#involvedPartyTransportZone,
+input#involvedPartyVATNumber,
+input#involvedPartyTaxNumber1,
+input#involvedPartyTaxNumber2,
+input#involvedPartyTaxJurisdiction,
+input#involvedPartyBankAccount1,
+input#involvedPartyBankAccount2,
+input#involvedPartyZBP_AcademicTitle,
+select#involvedPartyZBP_BusinessUnit,
+input#involvedPartyZBP_CRM_BPID,
+input#involvedPartyZBP_CustomerAccountGroup,
+input#involvedPartyZBP_CustomerGroup,
+input#involvedPartyZBP_CustomerHierarchy1,
+input#involvedPartyZBP_CustomerHierarchy2,
+input#involvedPartyZBP_CustomerHierarchy3,
+input#involvedPartyZBP_CustomerHierarchy4,
+input#involvedPartyZBP_CustomerHierarchy5,
+input#involvedPartyZBP_CustomerHierarchy6,
+input#involvedPartyZBP_CustomerPricingProcedure,
+input#involvedPartyZBP_DistributionChannel,
+input#involvedPartyZBP_ErpContactId,
+input#involvedPartyZBP_Incoterms,
+input#involvedPartyZBP_JobTitle,
+input#involvedPartyZBP_Language,
+input#involvedPartyZBP_Name2,
+input#involvedPartyZBP_Name3,
+input#involvedPartyZBP_Name4,
+input#involvedPartyZBP_PaymentTerms,
+input#involvedPartyZBP_PLDivision,
+input#involvedPartyZBP_PriceListType,
+input#involvedPartyZBP_SalesOrg,
+input#involvedPartyZBP_ShippingConditions,
+input#involvedPartyZBP_Title,
+input#involvedPartyZBP_VATRegistrationNumber {
+    pointer-events: none; /* disable forms */
+    background-color: #eee; /* change the background color to indicate it's disabled */
+}
+
+button#involvedPartyToggleEdit, button#removeBPButton {
+    visibility: hidden; /* remove editable button */
+    pointer-events: none;
+}

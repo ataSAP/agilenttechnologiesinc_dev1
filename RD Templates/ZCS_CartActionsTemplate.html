@@ -1,0 +1,20 @@
+<script type="text/html" id="actionsTemplate">
+    <!-- ko foreach: $data-->
+    <li class="action-row">
+        <a href="#" data-bind="click: execute" role="button">
+            <!-- ko if : $root.cartActionsModel().displayImagesForCartActions -->
+            <img data-bind="attr: { src: imageUrl }, visible: imageUrl" />
+            <!-- /ko -->
+            <!-- ko if: name === "ZCA_SendQuote" && $parentContext.$root.orderStatusName() === "Preparing" -->
+                <span>Calculate Shipping Cost</span>
+            <!-- /ko -->
+            <!-- ko if: name === "ZCA_SendQuote" && $parentContext.$root.orderStatusName() !== "Preparing" -->
+                <span>Send Quote</span>
+            <!-- /ko -->
+            <!-- ko ifnot: name === "ZCA_SendQuote" -->
+                <span data-bind="text: name"></span>
+            <!-- /ko -->
+        </a>
+    </li>
+    <!-- /ko -->
+</script>

@@ -1,0 +1,2 @@
+import ZGS_VariantPricingConditions as ZGS
+ZGS.calculatePricing(context)

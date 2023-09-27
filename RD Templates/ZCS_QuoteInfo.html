@@ -1,0 +1,149 @@
+@using Webcom.Configurator.Core
+@using WebSite.Controllers
+@using Webcom.Configurator.Crm.SAP
+
+<section class="row" id="QuoteInfo">
+  <div id="quote-info-section" class="fiori3-cart-section clearfix" data-bind="css: { 'section-toggled': isSectionCollapsed('quote-info-section') }">
+    <div class="fiori3-quote-section-header clearfix" data-bind="click: function() { toggleQuoteSection('quote-info-section') }">
+      <h3 data-bind="visible: !isSectionCollapsed('quote-info-section')">@Translation.Get("xsltQuoteInfo")</h3>
+      <div data-bind="visible: isSectionCollapsed('quote-info-section')" class="short-quote-section-info">
+        <div class="short-info-section">
+          <span>@Translation.Get("xsltStatus"): </span><span data-bind="text: orderStatusName()"></span>
+        </div>
+        <div class="short-info-section">
+          <span>@Translation.Get("xsltMarket"): </span><span data-bind="text: marketName()"></span>
+        </div>
+        <!-- ko if: pricebooks().length > 0 -->
+          <div class="short-info-section">
+            <span>@Translation.Get("xsltPricebook"): </span><span data-bind="text: pricebookName()"></span>
+          </div>
+        <!-- /ko -->
+      </div>
+      <a role="button" href="#" class="fiori3-quote-section-toggle" data-bind="css: { 'fiori3-rotated-quote-section-toggle': isSectionCollapsed('quote-info-section') },
+      event: { keypress: function() { toggleQuoteSectionOnKeypress(event, 'quote-info-section') } }, tooltip: { title: '@Translation.GetJS("Quote.CollapseExpandSection")' }">&#xe1c5;</a>
+    </div>
+    <div class="col-md-12 fiori3-quote-section-container clearfix">
+      <div class="col-md-4 col-sm-6 col-xs-12 clear-padding">
+        <div class="fiori3-quote-info-first-column">
+          <div class="fiori3-input-group input-group form-group col-xs-12">
+            <label aria-label='@Translation.Get("xsltStatus")' class="control-label" for="orderStatusLabelId">@Translation.Get("xsltStatus")</label>
+            <div><select class="form-control" data-bind="options: orderStatuses, optionsText: 'name', optionsValue: 'id', stringToNumericValue: orderStatusId, disable: isInViewMode() || isChangeContractCorrectonMode()" id="orderStatusLabelId"></select></div>
+          </div>
+          <div class="fiori3-input-group input-group form-group col-xs-12">
+            <label aria-label='@Translation.Get("xsltMarket")' class="control-label" for="marketsLabelId">@Translation.Get("xsltMarket")</label>
+            <!-- 4/6/23 COMMENTING THIS OUT: <div><select class="form-control" data-bind="options: markets, optionsText: 'name', optionsValue: 'id', stringToNumericValue: marketId, disable: isInViewMode() || isChangeContractCorrectonMode()" id="marketsLabelId"></select></div> -->
+            <span data-bind="text: marketName()"></span>
+          </div>
+          <!-- ko if: pricebooks().length > 0 -->
+          <div class="fiori3-input-group input-group form-group col-xs-12">
+              <!-- ko ifnot: isPricebookAvailable() -->
+              <div class="alert alert-danger resp-danger">
+                  <i class="fa fa-exclamation-triangle"></i>
+                  <span>@Translation.Get("Quote.PricebookNotAvailableMsg")</span>
+              </div>
+              <!-- /ko -->
+              <div class="row">
+                <label aria-label='@Translation.Get("xsltPricebook")' class="control-label" for="pricebooksLabelId">@Translation.Get("xsltPricebook")</label>
+                <!-- 4/6/23 COMMENTING THIS OUT: <div><select class="form-control" data-bind="options: pricebooks, optionsText: 'text', optionsValue: 'value', stringToNumericValue: pricebookId, disable: isInViewMode() || isChangeContractCorrectonMode()" id="pricebooksLabelId"></select></div> -->
+                <span data-bind="text: pricebookName()"></span>
+              </div>
+          </div>
+          <!-- /ko -->
+          <!-- 06/08/2023 COMMENTING OUT TO REMOVE SalesOrderID
+          @if (CartController.SapErpIsConnected() || CartController.SapCommerceIsConnected() || CartController.SapSbEnabled() || CartController.SapC4CConnected()) {
+            <div class="fiori3-input-group input-group form-group col-xs-12">
+              <div class="row">
+                <label aria-label='@Translation.Get("xsltOrderId")' class="control-label">@Translation.Get("xsltOrderId")</label>
+                <span data-bind="text: orderId"></span>
+              </div>
+            </div>
+          }
+          -->
+          <div class="fiori3-input-group input-group form-group col-xs-12" data-bind="if:origin() == '@SapConstants.SapC4COrigin'" style="width: 100%;max-width: 350px !important;">
+            <label aria-label='@Translation.Get("xsltQuoteIsPrimary")' class="control-label" for="isPrimary">@Translation.Get("xsltQuoteIsPrimary")</label>
+            <span id="isPrimaryId" data-bind="text: isPrimaryOnOpportunity"></span>
+          </div>
+          <div class="fiori3-input-group input-group form-group col-xs-12" data-bind="if:origin() == '@SapConstants.SapC4COrigin'">
+            <label aria-label='@Translation.Get("xsltQuoteOpportunityId")' class="control-label" for="opportunityId">@Translation.Get("xsltQuoteOpportunityId")</label>
+            <div><span id="opportunityId" data-bind="text: opportunityId"></span></div>
+          </div>
+        </div>
+    </div>
+  <div class="col-md-4 col-sm-6 col-xs-12 clear-padding">
+    <div class="col-md-12 fiori3-quote-info-second-column">
+      @if (!AppParams["DISPLAY_QUOTE_NUMBER_AND_CUSTOMER_NAME"].AsBool) {
+        <div class="fiori3-input-group input-group form-group col-xs-12">
+          <label aria-label='@Translation.Get("xsltQuoteNo")' class="control-label">@Translation.Get("xsltQuoteNo")</label>
+          <span data-bind="text: cartCompositeNumber"></span>
+        </div>
+      }
+      <div>
+        <div class="fiori3-input-group input-group form-group col-xs-6">
+          <label aria-label='@Translation.Get("xsltDateCreated")' class="control-label">@Translation.Get("xsltDateCreated")</label>
+          <span data-bind="text: dateCreated, tooltip: { title: dateTimeCreated, autoClose: true, closeOnClick: true, placement: 'right', trigger: 'hover', container: 'body' }"></span>
+        </div>
+        <div class="fiori3-input-group input-group form-group col-xs-6">
+          <label aria-label='@Translation.Get("xsltDateModified")' class="control-label">@Translation.Get("xsltDateModified")</label>
+          <span data-bind="text: dateModified, tooltip: { title: dateTimeModified, autoClose: true, closeOnClick: true, placement: 'right', trigger: 'hover', container: 'body' }"></span>
+        </div>
+      </div>
+      <div class="fiori3-input-group input-group form-group col-xs-12">
+        <label aria-label='@Translation.Get("xsltRevision")' class="control-label" for="quoteCustomDropdownMenu">@Translation.Get("xsltRevision")</label>
+        <div class="fiori3-revisions-container flex">
+          <!-- ko ifnot: $root.showNewRevisionDialog() || $root.showRevisionNameDialog() -->
+            <div class="fiori3-revisions-select-container">
+              <div class="custom-dropdown noselect" data-bind="dropdown: { menu: '#revisionsDropdownMenu' }">
+                <button class="btn form-control" data-bind="disable: isInViewMode() || $root.isChangeContractCorrectonMode(), css: { 'disabled-custom-dropdown': $root.isInViewMode() || $root.isChangeContractCorrectonMode() }" data-toggle-button="dropdown" id="quoteCustomDropdownMenu">
+                    <span><span data-bind="text: $root.selectedRevisionName"></span><span class="fa fa-caret-down" style="padding: 4px 5px 0 0;float: right"></span></span>
+                </button>
+                <div id="revisionsDropdownMenu" class="custom-dropdown-menu" data-bind="if: !($root.isInViewMode() || $root.isChangeContractCorrectonMode())">
+                  <div data-bind="foreach: $root.availableRevisions">
+                    <div tabindex="0" class="revision-option" data-bind="text: Name + (IsActive? ' (@Translation.Get("QuoteRevisions.Active"))' : '') + (!$root.hasActions($data, [1, 13]) ? ' @Translation.Get("QuoteRevisions.NotAvailable")' : ''), css:{'disabled-revision': !$root.hasActions($data, [1, 13])}, click: function(){ $root.selectRevision($data) }, event: { 'keyup': function() { $root.clickOnEnter(event) } }"></div>
+                  </div>
+                  <div>
+                    <div tabindex="0" class="revision-option" style="border-top: 1px solid #CACECC;" data-bind="click: $root.goToRevisionsPage, event: { 'keyup':  function() { clickOnEnter(event) } }">@Translation.Get("QuoteRevisions.GoToRevisionsPage")</div>
+                  </div>
+                </div>
+              </div>
+              <a id="setAsActiveButton" class="set-revision-as-active" aria-label='@Translation.Get("QuoteRevisions.SetAsActive")' href="#" data-bind="visible: $root.selectedRevision() && !$root.selectedRevision().IsActive && $root.hasActions($root.selectedRevision(), [15]), click: function(){ $root.executeRevisionAction($root.selectedRevision(), 15) }">@Translation.Get("QuoteRevisions.SetAsActive")</a>
+            </div>
+          <!-- /ko -->
+          <!-- ko if: $root.showNewRevisionDialog() || $root.showRevisionNameDialog() -->
+            <div class="fiori3-revisions-select-container">
+              <div><input type="text" placeholder="@Translation.Get("QuoteRevisions.NewRevisionName")" class="form-control"
+                data-bind="focusAndSelect:{}, value: $root.showNewRevisionDialog() ? $root.newRevisionName : $root.selectedRevision().Name, valueUpdate: 'afterkeydown', onKey: [{ key: 13, handler: $root.saveRevisionDialog }, { key: 27, handler: $root.cancelRevisionsDialog }]" /></div>
+            </div>
+          <!-- /ko -->
+          <!-- ko ifnot: $root.showNewRevisionDialog() || $root.showRevisionNameDialog()  -->
+            <span role="button" tabindex="0" class="fiori3-icon-button fiori3-icon-button-vertical-align" data-bind="event: { 'keyup': function() { clickOnEnter(event) } }, visible: !($root.isInViewMode() || $root.isChangeContractCorrectonMode()) && $root.hasActions($root.selectedRevision(), [14]), click: function(){ $root.showNewRevisionDialog(true); }, tooltip: { title: '@Translation.GetJS("QuoteRevisions.CreateNewRevision")', autoClose: true, closeOnClick: true, placement: 'top auto', trigger: 'hover focus', container: 'body' }"><span>&#xe058;</span></span>
+            <span role="button" tabindex="0" class="fiori3-icon-button fiori3-icon-button-vertical-align" data-bind="event: { 'keyup': function() { clickOnEnter(event) } }, visible: !($root.isInViewMode() || $root.isChangeContractCorrectonMode()) && $root.hasActions($root.selectedRevision(), [13]), click: function(){ $root.showRevisionNameDialog(true); },tooltip: { title: '@Translation.GetJS("QuoteRevisions.RenameRevision")', autoClose: true, closeOnClick: true, placement: 'top auto', trigger: 'hover focus', container: 'body' }"><span>&#xe038;</span></span>
+          <!-- /ko -->
+          <!-- ko if: $root.showNewRevisionDialog() || $root.showRevisionNameDialog() -->
+            <span role="button" tabindex="0" class="fiori3-icon-button fiori3-icon-button-vertical-align" data-bind="event: { 'keyup':  function() { clickOnEnter(event) } }, click: $root.saveRevisionDialog, tooltip: { title: '@Translation.GetJS("QuoteRevisions.SaveRevision")', placement: 'top auto' }"><span>&#xe05b;</span></span>
+            <span role="button" tabindex="0" class="fiori3-icon-button fiori3-icon-button-vertical-align" data-bind="event: { 'keyup':  function() { clickOnEnter(event) } }, click: $root.cancelRevisionsDialog, tooltip: { title: '@Translation.GetJS("QuoteRevisions.CancelRevision")', placement: 'top auto' }"><span>&#xe069;</span></span>
+          <!-- /ko -->
+        </div>
+      </div>
+      @if (CartController.SapCommerceIsConnected()){
+        <div class="fiori3-input-group input-group form-group col-xs-12">
+          <label aria-label='@Translation.Get("xsltExternalId")' class="control-label" for="externalLabelId">
+            @Translation.Get("xsltExternalId")
+          </label>
+          <span data-bind="text: externalId" id="externalLabelId"></span>
+        </div>
+      }
+    </div>
+  </div>
+    @*Cart comment*@
+    <div class="col-md-4 col-sm-6 col-xs-12 clear-padding">
+      <div class="form-group">
+        <label aria-label='@Translation.Get("xsltQuoteCartComment")' class="control-label cart-comment-height">
+          @Translation.Get("xsltQuoteCartComment")
+          <!-- ko template: { name: cartComment().template, data: cartComment }  -->
+          <!-- /ko -->
+        </label>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>

@@ -1,0 +1,79 @@
+<SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_JWT_GENERATOR->GENERATE_JWT_WITH_SECRET
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] JWT_HEADER                     TYPE        TY_JWT_HEADER
+* | [--->] JWT_CLAIM                      TYPE        TY_JWT_CLAIM
+* | [--->] SECRET                         TYPE        STRING
+* | [--->] ALGORITHM                      TYPE        STRING (default ='SHA256')
+* | [<-()] RESULT                         TYPE        STRING
+* | [!CX!] ZCX_JWT_GENERATOR
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+
+ METHOD generate_jwt_with_secret.
+   DATA(header_json) =
+       /ui2/cl_json=>serialize(
+           data        = jwt_header
+           compress    = abap_true
+           pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+   DATA(header_base64) = base64url_encode( header_json ).
+   DATA(payload_json) =
+       /ui2/cl_json=>serialize(
+           data        = format_jwt_claim( jwt_claim )
+           compress    = abap_true
+           pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+
+*start of change by SAP - Andrew Howell
+* find 'EXP' payload parameter and remove quotes added by serialization.
+ data: lv_payload_1 type string,
+       lv_payload_2 type string,
+       lv_payload_3 type string,
+       lv_parameter type string,
+       lv_value type string.
+
+   IF payload_json CS 'EXP' or payload_json cs 'exp'.
+     SPLIT payload_json AT ',' INTO lv_payload_1 lv_payload_2 lv_payload_3.
+     IF lv_payload_1 CS 'EXP' or lv_payload_1 cs 'exp'.
+       split lv_payload_1 at ':' into lv_parameter lv_value.
+       REPLACE ALL OCCURRENCES OF '"' in lv_value  with ''.
+       CONCATENATE lv_parameter ':' lv_value into lv_payload_1.
+     ENDIF.
+
+     IF lv_payload_2 CS 'EXP' or lv_payload_2 cs 'exp'.
+       split lv_payload_2 at ':' into lv_parameter lv_value.
+       REPLACE ALL OCCURRENCES OF '"' in lv_value     with ''.
+       CONCATENATE lv_parameter ':' lv_value into lv_payload_2.
+     ENDIF.
+
+     IF lv_payload_3 CS 'EXP' or lv_payload_3 cs 'exp'.
+       split lv_payload_3 at ':' into lv_parameter lv_value.
+       REPLACE ALL OCCURRENCES OF '"' in lv_value     with ''.
+       CONCATENATE lv_parameter ':' lv_value into lv_payload_3.
+     ENDIF.
+
+     CONCATENATE lv_payload_1 ',' lv_payload_2 ',' lv_payload_3 INTO payload_json.
+   ENDIF.
+*end of change by SAP - Andrew Howell
+
+   DATA(payload_base64) = base64url_encode( payload_json ).
+   DATA(data_to_sign) =
+       |{ header_base64 }.{ payload_base64 }|.
+
+   TRY.
+       cl_abap_hmac=>calculate_hmac_for_char(
+          EXPORTING
+            if_algorithm     = algorithm
+            if_key           = cl_abap_hmac=>string_to_xstring( secret )
+            if_data          = data_to_sign
+          IMPORTING
+            ef_hmacb64string = DATA(hmacb64string) ).
+     CATCH cx_abap_message_digest INTO DATA(lx_message_digest).
+       RAISE EXCEPTION TYPE zcx_jwt_generator
+         EXPORTING
+           previous = lx_message_digest.
+   ENDTRY.
+
+   DATA(lv_signature) = format_base64( hmacb64string ).
+   result =
+       |{ header_base64 }.{ payload_base64 }.{ lv_signature }|.
+
+ ENDMETHOD.

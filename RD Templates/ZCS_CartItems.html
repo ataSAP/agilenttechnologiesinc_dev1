@@ -1,0 +1,350 @@
+@using WebSite.Models
+@model CartItemTableViewModel
+
+@{
+	string colMatch = "";
+	int colCount = 0;
+	int ZPR_QtyRestricted_index = 0;
+	int ZPR_ItemCategory_index = 0;
+	int ZPR_MaterialStatus_index = 0;
+	int ZPR_ItemDealHealth_index = 0;
+	int ZMA_SalesText_index = 0;
+	foreach (CartItemColumnVm column in Model.Columns)
+	{
+		colMatch = column.Name;
+		switch (colMatch)
+			{
+				case "ZPR_QtyRestricted":
+					ZPR_QtyRestricted_index = colCount;
+					break;
+				case "ZPR_ItemCategory":
+					ZPR_ItemCategory_index = colCount;
+					break;
+				case "ZPR_MaterialStatus":
+					ZPR_MaterialStatus_index = colCount;
+					break;
+				case "ZPR_ItemDealHealth":
+					ZPR_ItemDealHealth_index = colCount;
+					break;
+				case "ZMA_SalesText":
+					ZMA_SalesText_index = colCount;
+					break;
+			}
+	colCount++;
+	}
+}
+
+<style>
+.icon-message-success { color: #6aa84f !important; text-align: center; }
+.icon-message-warning { color: #ffdf00 !important; text-align: center; }
+.icon-message-warning2 { color: #e9730c !important; text-align: center; }
+.icon-message-error { color: #b00000 !important; text-align: center;}
+</style>
+
+<div data-bind="visible: !isEmpty()">
+    <div id="no-more-tables" class="table-responsive cpq-scroll fiori3-items-table fiori3-items-table-sticky" data-bind="css: { 'fiori3-quote2-table': $root.useNewQuoteEngine, 'no-reorder': !$root.allowReorderingItems && !$root.useNewQuoteEngine, 'no-delete': !canDeleteAnyItems() || $root.useNewQuoteEngine, 'reorder-no-delete': $root.allowReorderingItems && !canDeleteAnyItems() && !$root.useNewQuoteEngine }">
+        <table class="fiori3-table items-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" scope="col" class="manage-items manage-items-sticky" data-bind="visible: $root.displayFirstColumn, css: { 'view-mode-sticky': $root.isInViewMode() }">
+                        <label class="fiori3-checkbox-group" data-bind="visible: !$root.useNewQuoteEngine && diplayAddProdSection && canDeleteAnyItems, css: { 'no-drag-icon': $root.useNewQuoteEngine }">
+                            <input type="checkbox" data-bind="checked: selectAll" />
+                            <span></span>
+                        </label>
+                    </th>
+                    <th rowspan="2" scope="col" class="search-items-sticky" data-bind="css: { 'new-quote-item-column-sticky': $root.useNewQuoteEngine, 'no-first-column-sticky': !$root.displayFirstColumn(), 'no-reorder': !$root.allowReorderingItems || $root.useNewQuoteEngine, 'no-delete': !canDeleteAnyItems() || $root.useNewQuoteEngine, 'view-mode-sticky': $root.isInViewMode() }">
+                        <div class="fiori3-items-search" data-bind="css: { 'search-in-use': isSearchInputFocused() }">
+                            <span>
+                                @Translation.Get("docItem")
+                            </span>
+                            <span class="search-items add-product fiori3-input-group" data-bind="css: { 'new-quote-items-search-popover': $root.useNewQuoteEngine }">
+                                <input id="searchInput2" autocomplete="off" type="text" class="form-control" data-bind="visible: isSearchInputFocused(), value: itemsSearch.search, valueUpdate: 'afterkeydown', hasfocus: itemsSearch.hasFocus, popover: { templateId: 'ItemsSearchTemplate', moduleFactory: ItemsSearchModuleFactory, trigger: 'manual', autoClose: true, placement: 'bottom', container: '#items-section' }" />
+                            </span>
+                            <button id="quickItemSearchTrigger" class="fiori3-icon-button search-input-trigger" data-bind="click: openSearchInput, executeOnEnter: function() { openSearchInput(); }, css: { 'search-input-trigger-hover-state': !isSearchInputFocused() }, tooltip: { title: '@Translation.GetJS("RD.Cart.SearchItems")' }">
+                                <span class="sap-icon">&#xe00d;</span>
+                            </button>
+                        </div>
+                    </th>
+                    @*Complex columns have 2 additional columns in next row so their rowSpan is 1 and colSpan is 2*@
+
+                    @foreach (CartItemColumnVm column in Model.Columns)
+                    {
+                        if (column.Name != "ZPR_QuantityRestricted" && column.Name != "ZPR_MaterialStatus" && column.Name != "ZPR_ItemCategory" && column.Name != "ZMA_SalesText")
+                        {
+                            if (column.IsComplex)
+                            {
+                                <th colspan="2" rowspan="1" scope="colgroup">@column.HeaderLabel</th>
+                            }
+                            else
+                            {
+                                <th colspan="1" rowspan="2" scope="col">@column.HeaderLabel</th>
+
+                            }
+                        }
+                    }
+                </tr>
+                <tr>
+                    @foreach (CartItemColumnVm column in Model.Columns)
+                    {
+                        if (column.Name != "ZPR_QuantityRestricted" && column.Name != "ZPR_MaterialStatus" && column.Name != "ZPR_ItemCategory" && column.Name != "ZMA_SalesText")
+                        {
+                            if (column.IsComplex)
+                            {
+                                <th scope="col" data-bind="text: $root.useNewQuoteEngine ? '@Translation.GetJS("Quote.Subscription.OneTime")' : '@Translation.Get("xsltNRC")'"></th>
+                                <th scope="col" data-bind="text: $root.useNewQuoteEngine ? '@Translation.GetJS("Quote.Subscription.Recurring")' : '@Translation.Get("xsltMRC")'"></th>
+                            }
+                        }
+                    }
+                </tr>
+            </thead>
+            <tbody data-bind="template : { name : 'itemTemplate', foreach:  items.renderingMainItems}" id="itemsTable"></tbody>
+        </table>
+    </div>
+    <!-- ko template: { name: 'EditablePagerTemplate', data : pager, if: areItemsPaged } -->
+    <!-- /ko -->
+    @Html.PartialWithNameAsComment("EditablePagerTemplate")
+    <div data-bind="if: !areItemsPaged() && items.renderCount() < items.mainItems().length">
+        <div id="itemsLoadingIndicator" class="loader"></div>
+        <div class="center"><small>@Translation.Get("Controls.LoadingIndicator.Loading")</small></div>
+    </div>
+</div>
+
+<script type="text/html" id="itemTemplate">
+    <tr data-bind="visible: isVisible, css: {firstInSystem: isFirstInSystem, lastInSystem: isLastInSystem, inSystem: isInSystem, isSearchMatch: isSearchMatch}">
+        <td data-bind="css: { 'hidden-xs new-quote-manage-items-width': $root.useNewQuoteEngine, 'no-reorder-manage-items': !$root.allowReorderingItems && !$root.useNewQuoteEngine, 'view-mode-sticky-edge': $root.isInViewMode() }, visible: $root.displayFirstColumn" class="item-actions-sticky">
+            <div class="manage-items" data-bind="visible: !$root.isInViewMode()">
+                <div class="hidden-xs" style="cursor: move" data-bind="css: { handle : canBeMoved }, visible: canBeMoved && !$root.useNewQuoteEngine">
+                    <span class="sap-icon-extended drag-icon">&#xf177;</span>
+                </div>
+                <label class="fiori3-checkbox-group" data-bind="visible: !$root.useNewQuoteEngine && canBeDeleted">
+                    <input type="checkbox" data-bind="checked: isSelected" />
+                    <span></span>
+                </label>
+                <div data-bind="css: { 'no-actions-width': !hasAnyActon }" class="column-with-actions dropdown">
+                    <div class="btn-group dropdown" data-bind="visible: hasAnyActon">
+                        <button data-bind="event: { keydown: $parent.onKeypressItemsActionsHandler }, popover: { templateId: 'itemActionsTemplate', autoClose: true, placement: 'auto bottom', container: 'body', closeOnClick: true }, tooltip: { 'title' : '@Translation.Get("Admin.Controls.ContainerNavigation.Step4")' }, attr: { id: hasAnyActon ? 'itemAction' + id : '', tabindex: hasAnyActon ? '0' : '-1' }" class="fiori3-icon-button dropdown-toggle item-action-button-cart">
+                            <span class="sap-icon">&#xe1f2;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </td>
+        /* $root.useNewQuoteEngine until CPQ-4192 Quote V2 - Implement Move To Position */
+
+        <td class="item-column item-column-sticky" data-bind="css: { 'new-quote-item-column-sticky': $root.useNewQuoteEngine, 'no-first-column-sticky': !$root.displayFirstColumn(), 'no-reorder': !$root.allowReorderingItems || $root.useNewQuoteEngine, 'no-delete': (!canBeDeleted && !$root.canDeleteAnyItems()) || $root.useNewQuoteEngine, 'view-mode-sticky': $root.isInViewMode() }">
+            <div class="clearfix">
+                <div class="item-number-wrapper">
+                    <div data-bind="style: { 'paddingLeft': 5 + (nestingLevel * 5) + 'px' }, css: { 'item-number-margin-right': !hasChildren }" class="fiori3-input-group">
+                        <span class="item-number" data-bind="text: itemNumber, visible: !isItemNumberEditable()"></span>
+                        <input type="text" class="item-number-input form-control" data-bind="value: itemNumber, visible: isItemNumberEditable()" />
+                        <a tabindex="0" data-bind="visible: hasChildren, click: toggleExpanded, clickBubble: false, event: {keypress: function() { window.lastActiveElementId = document.activeElement.id; $parent.clickOnEnter(event)} }, attr: { id: 'expandToggle' + id }, hasFocus: ('expandToggle' + id) == window.lastActiveElementId, tooltip: { title: '@Translation.GetJS("Cart.ExpandCollapseItem")' }" class="tree-view-icons">
+                            <div class="sap-icon" data-bind="visible: !isExpanded()">&#xe066;</div>
+                            <div class="sap-icon" data-bind="visible: isExpanded()">&#xe1e2;</div>
+                        </a>
+                    </div>
+                </div>
+                <div class="fiori3-item-wrapper">
+                    <div>
+                        <div data-bind="css: {'partnumber-input' : isPartNumberEditable }" class="item-part-number-wrapper flex">
+                            <a href="#" data-bind="visible: !isPartNumberEditable() && canBeEdited && itemDescription.partNumber, click: editItem, css: {'disabledField' : $root.isInViewMode()}">
+                                <span data-bind="text: itemDescription.partNumber, tooltip: { title: itemDescription.partNumber, placement: 'auto top' }" class="tooltip-if-long item-part-number"></span>
+                            </a>
+                            <span data-bind="visible: !isPartNumberEditable() && !canBeEdited, text: itemDescription.partNumber, tooltip: { title: itemDescription.partNumber, placement: 'auto top' }" class="tooltip-if-long item-part-number"></span>
+                            <!-- ko if : isPartNumberEditable --> @*we are using if instead of visibility to avoid typeahead initialization if its not needed*@
+                            <div class="partnumber-input-holder fiori3-input-group">
+                                <input type="text" autocomplete="off" class="form-control" data-bind="click: applyHigherZIndex, typeahead: { url: partNumberSuggestionUrl, value: itemDescription.partNumber }" />
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                        <label class="label label-success fiori3-product-type-label tooltip-if-long" data-bind="tooltip: { title: productTypeName, placement: 'auto top' }"><span data-bind="text: productTypeName"></span></label>
+                    </div>
+                    <div>
+                        <p class="description item-description pull-left ellipsis example tooltip-if-long" data-bind="css: { 'margin-top' : isPartNumberEditable }, tooltip: { title: itemDescription.productName, placement: 'auto top' }"><span data-bind="text: itemDescription.productName"></span></p>
+                        <span class="status-icons-wrapper">
+                        	<!-- ko if: $data.values[@ZPR_ItemCategory_index].value() === "" -->
+                                <span data-bind="tooltip: { title: 'Invalid Main Item' }" class="sap-icon" style="color: #b00000;cursor: pointer;" tabindex="0">&#xe0b1;</span>
+                            <!-- /ko -->
+                            <!-- ko if: $data.values[@ZPR_ItemCategory_index].value() !== "" -->
+                                <!-- ko if: $data.values[@ZPR_MaterialStatus_index].value() === "B0" || $data.values[@ZPR_MaterialStatus_index].value() === "J1" || $data.values[@ZPR_MaterialStatus_index].value() === "R1" || $data.values[@ZPR_MaterialStatus_index].value() === "S1" || $data.values[@ZPR_MaterialStatus_index].value() === "S4" || $data.values[@ZPR_MaterialStatus_index].value() === "S5" || $data.values[@ZPR_MaterialStatus_index].value() === "Y0" || $data.values[@ZPR_MaterialStatus_index].value() === "Z0" || $data.values[@ZPR_MaterialStatus_index].value() === "ZZ" -->
+                                    <span data-bind="tooltip: { title: 'Material Status Error ' +  $data.values[@ZPR_MaterialStatus_index].value() }" class="sap-icon incomplete-inconsistent-icon" tabindex="0">&#xe0b1;</span>
+                                <!-- /ko -->
+                                <!-- ko if: $data.values[@ZPR_MaterialStatus_index].value() === "J0" || $data.values[@ZPR_MaterialStatus_index].value() === "S0" || $data.values[@ZPR_MaterialStatus_index].value() === "S2" -->
+                                    <span data-bind="tooltip: { title: 'Material Status Warning ' +  $data.values[@ZPR_MaterialStatus_index].value() }" class="sap-icon" style="color: #e9730c;cursor: pointer" tabindex="0">&#xe201;</span>
+                                <!-- /ko -->
+                            <!-- /ko -->
+                            <!-- ko if : isIncomplete || (isInvalid && isSapItem) || isInconsistent -->
+                            <span data-bind="tooltip: { title: getItemTooltipMessage }" class="sap-icon incomplete-inconsistent-icon" tabindex="0">&#xe207;</span>
+                            <!-- /ko -->
+                            <!-- ko if : showCalculationStatusIcon -->
+                            <span data-bind="tooltip: { title: calculationStatusIconTooltip }, css:  calculationStatusIconColor" class="sap-icon calculation-status" tabindex="0">&#xe0f3;</span>
+                            <!-- /ko -->
+                            <!-- ko if : itemDescription.comment -->
+                            <a role="button" data-bind="tooltip: { title: '@Translation.GetJS("CartItem.HasComment")' }, click: editComment, attr: { id: 'cartComment_' + id }" href="#" class="cart-item-comment"><span class="sap-icon">&#xe0b2;</span></a>
+                            <!-- /ko -->
+                            <!--ko if : showDiscountRecommendationIcon -->
+                            <a data-bind="tooltip: { title: '@Translation.GetJS("CartItem.Cxai.HasDiscountRecommendation")' }" href="#" class="discount-recommendation-icon"><span class="sap-icon">&#xe0ee;</span></a>
+                            <!--/ko-->
+                            <!-- ko if: $data.values[@ZMA_SalesText_index].value() !== "" -->
+                            	<a href="#" aria-label="@Translation.GetJS("CartItem.DescriptionPopover")" data-bind="popover: { templateId: 'itemDescriptionTemplate', autoClose: true, container: 'body', viewport: '#cartContainer', placement: 'auto right' }, tooltip: { title:'@Translation.GetJS("CartItem.DescriptionPopover")' }"><span class="sap-icon" style="margin-left: 8px;">&#xe202;</span></a> @*this is container that might contain full description popover when it cannot fit in description field*@
+                            <!-- /ko -->
+                        </span>
+                    </div>
+                </div>
+                <div class="allocate-section fiori3-allocate-section" data-bind="visible: !isRestricted && $root.dealViewEnabled, dropdown: { event: 'mouseenter focus', menu: '.tooltip-content', position: 'fixed', isOpen: titleOpened, closeEvents: ['focusout', 'mouseleave'] }, css: { 'allocated': section(), 'unallocated': !section() }">
+                    <button data-toggle-button="dropdown" class="btn btn-tertiary" data-bind="click: $root.setItemToAllocate, attr: { id: 'allocateSuggestionsTrigger' + '_' + id }"></button>
+                    <div class="tooltip-content">
+                        <span data-bind="text: sectionTitle"></span>
+                    </div>
+                </div>
+            </div>
+        </td>
+
+
+        @for (int i = 0; i < Model.Cells.Count; i++)
+        {
+            if (Model.Cells[i].ColumnName != "ZPR_QuantityRestricted" && Model.Cells[i].ColumnName != "ZPR_MaterialStatus" && Model.Cells[i].ColumnName != "ZPR_ItemCategory" && Model.Cells[i].ColumnName != "ZMA_SalesText")
+            {
+            <td data-title="@Model.Cells[i].CellLabel">
+            	@if(Model.Cells[i].ColumnName == "Quantity") {
+                	<!-- ko if: $data.values[@ZPR_QtyRestricted_index].value() === "X" -->
+                        <div class="numberCell" data-bind="text: values[@i].value() "></div>
+                    <!-- /ko -->
+                    <!-- ko if: $data.values[@ZPR_QtyRestricted_index].value() !== "X" -->
+                        <!-- ko template : { name : values[@i].template, data: values[@i] }  -->
+                        <!-- /ko -->
+                    <!-- /ko -->
+                } else if(Model.Cells[i].ColumnName == "ZPR_ItemDealHealth") {
+                	<!-- ko if: $data.values[@ZPR_ItemDealHealth_index].value() === "green" -->
+                    	<div class="sap-icon icon-message-success">&#xe203;</div>
+                    <!-- /ko -->
+                    <!-- ko if: $data.values[@ZPR_ItemDealHealth_index].value() === "yellow" -->
+                        <div class="sap-icon icon-message-warning">&#xe203;</div>
+                    <!-- /ko -->
+                    <!-- ko if: $data.values[@ZPR_ItemDealHealth_index].value() === "orange" -->
+                        <div class="sap-icon icon-message-warning2">&#xe201;</div>
+                    <!-- /ko -->
+                    <!-- ko if: $data.values[@ZPR_ItemDealHealth_index].value() === "red" -->
+                        <div class="sap-icon icon-message-error">&#xe201;</div>
+                    <!-- /ko -->
+                } else { 
+                	<!-- ko template : { name : values[@i].template, data: values[@i] }  -->
+                    <!-- /ko -->
+               	}
+            </td>
+            }
+        }
+
+        <td data-bind="if: !$root.isInViewMode() && $root.isMobileReady()" class="column-with-actions show-all fiori3-item-actions-small-screen">
+            <button class="btn btn-primary btn-sm" data-bind="tooltip: { title: '@Translation.GetJS("CartItem.MoveUpTitle")' }, click: moveUp, visible: canBeMoved"><span class="sap-icon">&#xe04b;</span></button>
+            <button class="btn btn-primary btn-sm" data-bind="tooltip: { title: '@Translation.GetJS("CartItem.MoveDownTitle")' }, click: moveDown, visible: canBeMoved"><span class="sap-icon">&#xe04e;</span></button>
+            <!-- ko foreach: actions -->
+            <button class="btn btn-sm" data-bind="tooltip: { title: name, 'class': 'itemaction' + id }, click: execute">
+                <span class="sap-icon" data-bind="html: id == '4' ? '&#xe03d;' : id == '3' ? '&#xe245;' : id == '2' ? '&#xe038;' : id == '6' ? '&#xe065;' : id == '5' ? '&#xe010;' : id == '7' ? '&#xe04b;' : ''"></span>
+            </button>
+            <!-- /ko -->
+            <button class="btn btn-primary btn-sm" data-bind="tooltip: { title: '@Translation.GetJS("CartItem.CommentTitle")' }, click: editComment, visible: itemDescription.isCommentEditable() || itemDescription.comment()"><span class="sap-icon">&#xe0b2;</span></button>
+        </td>
+    </tr>
+    <!-- ko if: $root.itemToAllocate() == $data -->
+    <tr class="baseItem section-options">
+        <td></td>
+        <td class="item-column" style="border-right: none">
+            <div style="text-align: right">
+                <div style="display: inline-block;">
+                    <span style="padding: 15px">@Translation.GetJS("DealStructure.AllocateTo")</span>
+                </div>
+                <!-- ko ifnot: $root.relocateSectionParent() -->
+                <div class="fiori3-input-group search-input" style="position: relative; display: inline-block; width: 300px" data-bind="dropdown: { event: 'mouseenter focus', position: 'fixed', menu: '.sections-suggestions' }">
+                    <input id="relocateSuggestionsSearch" data-toggle-button="dropdown" type="text" class="form-control" style="display: inline-block" data-bind="textInput: $root.searchNewSectionName" placeholder="@Translation.GetJS("DealStructure.SectionLabel")" />
+                    <div class="custom-dropdown-menu sections-suggestions cpq-scroll">
+                        <table id="relocateSuggestionsDropdown" data-bind="visible: $root.relocateSuggestions().length">
+                            <tbody data-bind="foreach: $root.relocateSuggestions">
+                                <tr style="cursor: pointer" data-bind="event: { mousedown: function(){ $root.relocateSectionParent($data); $root.searchNewSectionName('') } }">
+                                    <td class="section-path" data-bind="text: $root.resolveSectionSuggestionName(sectionPath() || sectionName()), event: { keyup: function() { $root.relocateSectionParentOnEnter(event, $data); } }" tabindex="0"></td>
+                                    <td class="hierarchy" data-bind="text: hierarchyId"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- /ko -->
+                <!-- ko if: $root.relocateSectionParent() -->
+                <div class="allocation-parent-section" data-bind="with: $root.relocateSectionParent">
+                    <div class="section-title">
+                        <span data-bind="text: hierarchyId"></span>
+                        <span data-bind="text: sectionName"></span>
+                    </div>
+                    <button id="relocateSectionCancel" class="btn-tertiary icon-sys-cancel pull-right" data-bind="click: $root.cancelRelocate"></button>
+                </div>
+                <!-- /ko -->
+            </div>
+        </td>
+        <td colspan="100%" style="border-left: none">
+            <button class="btn btn-tertiary fiori3-btn-tertiary" data-bind="enable: section() || $root.relocateSectionParent(), click: function () { $root.allocateSection('allocateSuggestionsTrigger' + '_' + id) }">@Translation.GetJS("DealStructure.Allocate")</button>
+            <button class="btn btn-tertiary fiori3-btn-tertiary" data-bind="click: function() { $root.cancelAllocate('allocateSuggestionsTrigger' + '_' + id); }">@Translation.GetJS("DealStructure.Cancel")</button>
+        </td>
+    </tr>
+    <!-- /ko -->
+    <!-- ko template : { name : 'itemTemplate', foreach: childItems }  -->
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="itemCommentTemplate">
+    <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog fiori3-modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close fiori3-icon-button" data-dismiss="modal" aria-hidden="true">&#xe03e;</button>
+                    <h4>@Translation.Get("xsltItemComment")</h4>
+                </div>
+                <div class="modal-body">
+                    <p data-bind="text: comment, visible: !isCommentEditable"></p>
+                    <textarea data-bind="value: comment, visible: isCommentEditable" class="form-control fiori3-textarea"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary fiori3-btn-primary" data-bind="click: save, visible: isCommentEditable">@Translation.Get("Msg.Save")</button>
+                    <button class="btn btn-tertiary fiori3-btn-tertiary" data-dismiss="modal" aria-hidden="true">@Translation.Get("Msg.Cancel")</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="itemActionsTemplate">
+    <ul class="dropdown-menu-cart fiori3-dropdown-menu fiori3-dropdown-icons-menu" id="itemActionsDropdown">
+        <li role="button" tabindex="0" data-bind="visible: canBeMoved, click: moveUp, attr: { id: 'moveUp_' + id }">
+            <span class="sap-icon">&#xe04b;</span>
+            <span class="vertical-align" data-bind="text: '@Translation.GetJS("CartItem.MoveUpTitle")'"></span>
+        </li>
+        <li role="button" tabindex="0" data-bind="visible: canBeMoved, click: moveDown, attr: { id: 'moveDown_' + id }">
+            <span class="sap-icon">&#xe04e;</span>
+            <span class="vertical-align" data-bind="text: '@Translation.GetJS("CartItem.MoveDownTitle")'"></span>
+        </li>
+
+        <!-- ko foreach: actions -->
+        <li role="button" tabindex="0" data-bind="click: execute">
+            <span class="sap-icon"
+                  data-bind="html: id == '4' ? '&#xe03d;' : id == '3' ? '&#xe245;' : id == '2' ? '&#xe038;' : id == '6' ? '&#xe065;' : id == '5' ? '&#xe010;' : id == '7' ? '&#xe04b;' : ''">
+            </span>
+            <span class="vertical-align" data-bind="text: name"></span>
+        </li>
+        <!-- /ko -->
+        <li role="button" tabindex="0" data-bind="visible: favoritesEnabled, click: showFavoritesForProduct">
+            <span class="sap-icon">&#xe065;</span>
+            <span class="vertical-align">@Translation.GetJS("Msg.ViewFavorites")</span>
+        </li>
+        <li role="button" tabindex="0" data-bind="visible: itemDescription.isCommentEditable() || itemDescription.comment(), click: editComment">
+            <span class="sap-icon">&#xe0d3;</span>
+            <span class="vertical-align">@Translation.GetJS("CartItem.CommentTitle")</span>
+        </li>
+        <li role="button" tabindex="0" data-bind="visible: !$root.useNewQuoteEngine, click: openCollaborationDialog, attr: { id: 'collaborationComments_' + id }">
+            <span class="sap-icon">&#xe0b2;</span>
+            <span class="vertical-align">@Translation.GetJS("CartItem.CollaborationCommentTitle")</span>
+        </li>
+    </ul>
+</script>
+
+<script type="text/html" id="itemDescriptionTemplate">
+    <div class="description-popover" data-bind="text: $data.values[@ZMA_SalesText_index].value()">
+    </div>
+</script>

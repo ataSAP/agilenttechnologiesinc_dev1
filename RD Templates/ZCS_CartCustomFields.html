@@ -1,0 +1,42 @@
+@using WebSite.Controllers
+
+<section class="row" id="CustomFields">
+    <div id="custom-fields-section" class="fiori3-cart-section clearfix" data-bind="css: { 'section-toggled': isSectionCollapsed('custom-fields-section') }">
+        @*Custom fields*@
+        <div data-bind="visible: customFieldsAndQuoteTables().length > 0">
+            <div class="fiori3-quote-section-header" data-bind="click: function() { toggleQuoteSection('custom-fields-section') }">
+                <h3>@Translation.Get("xsltQuoteCartCustomFields")</h3>
+                <a role="button" href="#" class="fiori3-quote-section-toggle" data-bind="css: { 'fiori3-rotated-quote-section-toggle': isSectionCollapsed('custom-fields-section') },
+                    event: { keypress: function() { toggleQuoteSectionOnKeypress(event, 'custom-fields-section') } }, tooltip: { title: '@Translation.GetJS("Quote.CollapseExpandSection")' }">&#xe1c5;</a>
+            </div>
+            <div id="cartCustomFields" class="col-md-12 clearfix no-padding fiori3-quote-section-container fiori3-custom-fields-container">
+                <div data-bind="foreach: customFieldsAndQuoteTables" class="custom-fields">
+                    <!-- ko if: name == "ZQT_QuoteType_Default" -->
+                    <!--/ko -->
+                    <!-- ko if: name == "ZQT_QuoteType" -->
+                        <!-- ko if: $parent.customFieldsAndQuoteTables.filterByProperty('name','ZQT_QuoteType_Default')()[0].content() === 'BUD' -->
+                            <div class="fiori3-input-group col-md-4 col-xs-12 clearfix">
+                                <label data-bind="html: label, attr: { for: $index() + '_' + id, id: 'Label_' + $index() + '_' + id }" style="display: inline-block;"></label>
+                                <pre class="cpq-scroll" data-bind="text: serverContent"></pre>
+                            </div>
+                        <!--/ko -->
+                        <!-- ko ifnot: $parent.customFieldsAndQuoteTables.filterByProperty('name','ZQT_QuoteType_Default')()[0].content() === 'BUD' -->
+                            <!-- ko template: template -->
+                            <!--/ko -->
+                        <!--/ko -->
+                    <!--/ko -->
+                    <!-- ko if: name != "ZQT_QuoteType" && name != "ZQT_QuoteType_Default" && name != "ZQT_QuoteErrors" && name != "ZQT_QuoteWarnings" && name != "ZQT_QuoteInfo" -->
+                        <!-- ko template: template -->
+                        <!--/ko -->
+                    <!--/ko -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@Html.PartialWithNameAsComment("Templates/CartCustomFieldTemplates")
+@if (CartController.HasQuoteTablesOnCurrentTab()) {
+    @Html.PartialWithNameAsComment("Templates/CartTableTemplate")
+    @Html.PartialWithNameAsComment("Templates/CartTableCellTemplates")
+}

@@ -1,0 +1,71 @@
+<div class="row">
+    <!-- Begin custom RD Template code. This block needs to be maintained in this location for future release updates! -->
+    <!-- ko foreach: customFieldsAndQuoteTables.filterByProperty('name','ZQT_QuoteErrors') -->
+        <!-- ko if: rows().length > 0 -->
+            <div class="fiori3-alert fiori3-alert-danger fiori3-alert-danger-border">
+                <span class="sap-icon">&#xe1ec;</span>
+                <div class="cart-warning-group" style="margin-bottom: 0px !important">
+                    <p>Quote Errors:</p>
+                    <ul data-bind="foreach: rows">
+                        <li>
+                            <!-- ko foreach: cells -->
+                            	<span data-bind="text: value"></span> |
+                        	<!--/ko -->
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        <!--/ko -->
+    <!--/ko -->
+    	<!-- ko foreach: customFieldsAndQuoteTables.filterByProperty('name','ZQT_QuoteWarnings') -->
+        <!-- ko if: rows().length > 0 -->
+            <div class="fiori3-alert fiori3-alert-warning fiori3-alert-warning-border">
+                <span class="sap-icon">&#xe053;</span>
+                <div class="cart-warning-group" style="margin-bottom: 0px !important">
+                    <p>Quote Warnings:</p>
+                    <ul data-bind="foreach: rows">
+                        <li>
+                            <!-- ko foreach: cells -->
+                            	<span data-bind="text: value"></span> |
+                        	<!--/ko -->
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        <!--/ko -->
+    <!--/ko -->
+    <!-- End custom RD Template code. -->
+    <div class="fiori3-alert fiori3-alert-danger fiori3-alert-danger-border" data-bind="visible: approval.errorMessage, html: approval.errorMessage"></div>
+    <div class="fiori3-alert fiori3-alert-warning fiori3-alert-warning-border" data-bind="visible: messageTitle() || approval.conditions().length > 0 || cartUsage().length > 0 || landingMessages().length > 0 || errorMessage()">
+        <span class="sap-icon">&#xe053;</span>
+        <div>
+            <div class="cart-warning-group" data-bind="style : { display: landingMessageTitle() ? 'block' : 'none' }">
+                <p data-bind="html: landingMessageTitle"></p>
+                <ul data-bind="foreach: landingMessages">
+                    <li><span data-bind="text: title"></span><span data-bind="if: description">: </span><span data-bind="text: description"></span></li>
+                </ul>
+            </div>
+            <div class="cart-warning-group" data-bind="style : { display: messageTitle() ? 'block' : 'none' }">
+                <p data-bind="html: messageTitle"></p>
+                <ul data-bind="foreach: messageItems">
+                    <li><span data-bind="text: title"></span>: <span data-bind="    text: description"></span></li>
+                </ul>
+            </div>
+            <div class="cart-warning-group" data-bind="style : { display: errorMessage() ? 'block' : 'none' }">
+                <span data-bind="html: errorMessage"></span><br />
+            </div>
+            <div class="cart-warning-group" data-bind="style : { display: approval.conditions().length > 0 ? 'block' : 'none' }">
+                <!-- ko template: { name: 'ApprovalTemplate', data: approval }  -->
+                <!--/ko -->
+            </div>
+            <div class="cart-warning-group" data-bind="style : { display: cartUsage().length > 0 ? 'block' : 'none' }">
+                <p>@Translation.Get("Cart.RecentlyOpened")</p>
+                <ul data-bind="foreach: cartUsage">
+                    <li><span data-bind="text: user"></span>(<span data-bind="    text: openedMinutesAgo"></span>)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.PartialWithNameAsComment("Templates/ApprovalTemplate")

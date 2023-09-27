@@ -1,0 +1,14 @@
+<script type="text/html" id="LabelTemplate">
+    <div class="fiori3-container-label flex">
+        <span class="label-range-hint-wrapper flex">
+            <label style="display: inline-block" data-bind="html: name, css: { 'fiori3-incomplete-label': incomplete() && $root.highlightIncomplete(), 'pull-left': hint(), 'required-attribute': required }, attr: { for: stdAttrCode }"></label>
+            <span data-bind="visible: validationRangeMessage(), text: validationRangeMessage(), style: { 'margin-bottom': validationRangeMessage() ? '4px' : '0' }" style="word-wrap: break-word" class="grayout"></span>
+            <a href="#" class="label-hint-icon" data-bind="attr: { id: 'popover' + id() }, visible: !isButtonTemplate() && hint().length > 0, popover: { templateId: 'HintTemplate', container: 'body', placement: 'auto top', autoClose: true, html: true }" aria-label="@Translation.GetJS("Configurator.HintPopover")"><span class="sap-icon">&#xe202;</span></a>
+        </span>
+    </div>
+</script>
+<script type="text/html" id="HintTemplate">
+    <div class="description-popover">
+        <span data-bind="html: hint"></span>
+    </div>
+</script>

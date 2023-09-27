@@ -1,0 +1,778 @@
+<div id="main" class="cpq-scroll">
+    <div class="row">
+        <div id="catalogContainer" aria-label="@Translation.GetJS("View.ResponsiveLayout.Catalog")">
+            <div class="row catalog" data-bind="visible: isInitialized" style="display: none">
+                @*Top bar*@
+                <div id="catalogMainContainer" class="row row-offcanvas row-offcanvas-left catalog-page-container fiori3-catalog-page-container catalogMainContainer-refactored" data-bind="css: { 'active': areCategoriesActive }">
+                    <div data-bind="with: categoriesVm">
+                        @Html.PartialWithNameAsComment("Categories")
+                    </div>
+                    <main class="catalog-content">
+                        <div class="catalog-products fiori3-catalog-products col-md-12">
+                            <div id="catalogHeaderContainer" class="catalog-page-header catalog-page-header-refactored flex">
+                                <nav aria-labelledby="catalogPageHeading">
+                                    @*Breadcrumbs*@
+                                    <ul id="breadcrumbsContainer" class="breadcrumb mobile-breadcrumbs">
+                                        @Html.PartialWithNameAsComment("Breadcrumbs")
+                                    </ul>
+
+                                    @* page heading *@
+                                    <!-- ko if: displayProductFirst -->
+                                    <!-- ko if: shouldShowAllProducts() && !categoryId() && !search() -->
+                                    <h2 id="catalogPageHeading" class="catalog-page-heading">@Translation.Get("xmlProducts")</h2>
+                                    <!-- /ko-->
+                                    <!-- ko if: ((shouldShowProducts() && hasProducts()) || (!hasProducts() && shouldShowSubcategories() && !subCategories().length > 0) || (hasFilterApplied() && !hasProducts())) && categoryId()  && !search() -->
+                                    <h2 id="catalogPageHeading" class="catalog-page-heading">@Translation.Get("Admin.Log.Category") - <span data-bind="text: categoryName"></span></h2>
+                                    <!-- /ko -->
+                                    <!-- ko if: search() || hasFilterApplied() -->
+                                    <h2 id="catalogPageHeading" class="catalog-page-heading">@Translation.Get("Catalog.SearchResults")</h2>
+                                    <!-- /ko -->
+                                    <!-- /ko -->
+                                    <!-- ko if: shouldShowSubcategories() && subCategories().length > 0 -->
+                                    <h3 class="catalog-page-heading hidden" data-bind="css: { hidden : hideCategoriesWithinCatalog || displayProductFirst}">@Translation.Get("xmlCategories")</h3>
+                                    <!-- /ko -->
+                                    <!-- ko if: shouldShowSubcategories() && subCategories().length > 0 && !hasProducts() -->
+                                    <h3 class="catalog-page-heading hidden" data-bind="css: { hidden : hideCategoriesWithinCatalog || !displayProductFirst}">@Translation.Get("xmlCategories")</h3>
+                                    <!-- /ko -->
+                                </nav>
+
+                                <ul class="catalog-header-actions flex actions-toolbar catalog-actions-toolbar">
+                                    <!-- Search -->
+                                    <!-- Comment out below to remove from default template -->
+                                    <!--<li class="toolbar-action toolbar-action-search">
+                                        <div class="input-group catalog-search fiori3-catalog-search dropdown" data-bind="css: { 'search-in-use': isSearchInputFocused() }">
+                                            <div role="button" id="catalogSearchTrigger" tabindex="0" class="search-input-trigger" aria-label="@Translation.GetJS("Catalog.Search")" data-bind="click: openSearchInput, css: { 'search-input-trigger-hover-state': !isSearchInputFocused() }, tooltip: { title: '@Translation.GetJS("Catalog.Search")' }, executeOnEnter: function(){$element.click()}">
+                                                <span class="sap-icon">&#xe00d;</span>
+                                            </div>
+                                            <input aria-label="@Translation.GetJS("Catalog.Search")" id="searchInput" type="text" class="form-control" autocomplete="off" data-bind="visible: isSearchInputFocused(), typeahead: { url: suggestionUrl, value: search }">
+                                        </div>
+                                    </li>-->
+
+                                    <!-- Filter -->
+                                    <li class="toolbar-action toolbar-action-filter">
+                                        <div id="FilterDropDownContainer" class="input-group-btn">
+                                            <!-- The old icon for filter is code &#xe076; -->
+                                            <div role="button" aria-haspopup="true" tabindex="0" id="filterDropdown" aria-label="@Translation.GetJS("Catalogue.Filters")" data-toggle="dropdown" data-bind="tooltip: { title: '@Translation.GetJS("Catalogue.Filters")' }, executeOnEnter: function(){$element.click()}">
+                                                <span class="sap-icon fiori3-active-filter-icon" data-bind="css: { 'color-change': hasAdvancedFilter() }">&#xe00d;</span>
+                                            </div>
+                                            <div id="FilterDropdown" class="dropdown-menu stayOpen col-md-12 col-sm-12 col-xs-12 slide-down dropdown-menu-catalog" role="menu" aria-labelledby="filterDropdown">
+                                                @*Filters*@
+                                                <h4 class="filter-header dropdown-menu-header">
+                                                    @Translation.Get("Catalog.FilterCatalog")
+                                                </h4>
+                                                <div id="filterScrollableContainer" class="filters clearfix cpq-scroll" data-bind="attr: { 'tabindex': filtersHaveScrollbar() ? '0' : '-1' }">
+                                                    <div class="fiori3-input-group input-group form-group">
+                                                        <label for="Name">@Translation.Get("MSG.Name")</label>
+                                                        <input class="form-control" autocomplete="off" id="Name" name="Name" type="text" data-bind="valueUpdatedOnEnter: currentNameFilter, valueUpdate: 'afterkeydown'">
+                                                    </div>
+                                                    <!-- Comment out below to remove from default template -->
+                                                    <!--<div class="fiori3-input-group input-group form-group">
+                                                        <label for="Description">@Translation.Get("Msg.Description")</label>
+                                                        <input class="form-control" autocomplete="off" id="Description" name="Description" type="text" data-bind="valueUpdatedOnEnter: currentDescriptionFilter, valueUpdate: 'afterkeydown'">
+                                                    </div>-->
+                                                    <div class="fiori3-input-group input-group form-group">
+                                                        <label for="PartNumber">@Translation.Get("Msg.PartNumber")</label>
+                                                        <input class="form-control" autocomplete="off" id="PartNumber" name="PartNumber" type="text" data-bind="valueUpdatedOnEnter: currentPartNumber, valueUpdate: 'afterkeydown'">
+                                                    </div>
+                                                    <div class="fiori3-input-group input-group form-group">
+                                                        <label for="Type">@Translation.Get("Msg.Type2")</label>
+                                                        <input class="form-control" autocomplete="off" id="Type" name="Type" type="text" data-bind="valueUpdatedOnEnter: currentTypeFilter, valueUpdate: 'afterkeydown'">
+                                                    </div>
+                                                    <!-- Comment out below to remove from default template -->
+                                                    <!--<label class="fiori3-checkbox-group" data-bind="visible: canFilterByPromotion">
+                                                        <input id="InPromotion" name="InPromotion" type="checkbox" data-bind="checked: currenInPromotionFilter">
+                                                        <span>@Translation.Get("Msg.InPromotion")</span>
+                                                    </label>-->
+                                                    <!--
+                                                    <div class="clearfix">
+                                                        <div class="fiori3-input-group input-group form-group price-lower">
+                                                            <label for="PriceLower">@Translation.Get("Msg.PriceLower")</label>
+                                                            <input class="form-control" autocomplete="off" id="PriceLower" name="Price" type="text" data-bind="valueUpdatedOnEnter: currentLowerPriceFilter, valueUpdate: 'afterkeydown', validateInput: { val: currentLowerPriceFilter, event: 'keypress input blur' }">
+                                                        </div>
+                                                        <div class="fiori3-input-group input-group form-group price-higher">
+                                                            <label for="PriceHigher">@Translation.Get("Msg.PriceHigher")</label>
+                                                            <input class="form-control" autocomplete="off" id="PriceHigher" name="Price" type="text" data-bind="valueUpdatedOnEnter: currentUpperPriceFilter, valueUpdate: 'afterkeydown', validateInput: { val: currentUpperPriceFilter, event: 'keypress input blur' }">
+                                                        </div>
+                                                    </div>-->
+
+                                                    <div class="mobile-order width-100">
+                                                        <label for="SortOrderBy">
+                                                            @Translation.Get("Msg.OrderBy")
+                                                        </label>
+                                                        <select id="SortOrderBy" data-bind="value: sortedBy" class="form-control">
+                                                            <option value="0">@Translation.Get("MSG.Name")</option>
+                                                            <option value="1">@Translation.Get("Msg.PartNumber")</option>
+                                                            <option value="2">@Translation.Get("Msg.ProductTypeName")</option>
+                                                            <!-- Comment out below to remove from default template -->
+                                                            <!--
+                                                            <option value="4">@Translation.Get("Msg.Rank")</option>
+                                                            <option value="3" data-bind="visible: canFilterAndSortByPrice">@Translation.Get("Msg.Price")</option>-->
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="filter-footer">
+                                                    <button class="btn btn-primary fiori3-btn-primary" data-bind="click: filterChangeHandler, executeOnEnter: function(){$element.click();return false;}">@Translation.Get("Catalog.Filter")</button>
+                                                    <button class="btn btn-tertiary fiori3-btn-tertiary close-btn" data-bind="executeOnEnter: function(){$element.click();return false;}">@Translation.Get("Msg.Cancel")</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <!-- Favorites -->
+                                    <li class="toolbar-action toolbar-action-favorite">
+                                        <a tabindex="0" aria-label="@Translation.Get("Cart.FavoritesTitle")" href="/Favorites/Favorites.aspx" class="fiori3-icon-button fiori3-small-screen-favorites-icon" data-bind="tooltip: { title: '@Translation.Get("Cart.FavoritesTitle")', placement: 'auto top' }"><span class="sap-icon">&#xe065;</span></a>
+                                    </li>
+
+                                    <!-- Sort -->
+                                    <li class="toolbar-action toolbar-action-sort">
+                                        <div id="sortDropdownContainer" class="order-data fiori3-order-data dropdown">
+                                            <div role="button" aria-haspopup="true" tabindex="0" id="sortDropdown" aria-label="@Translation.GetJS("Catalog.Sort")" data-toggle="dropdown" data-bind="css: { active: isSortAscending() == 'false' }, tooltip: { title: '@Translation.GetJS("Catalog.Sort")'},  executeOnEnter: function(){$element.click()}">
+                                                <span class="sap-icon">&#xe095;</span>
+                                            </div>
+                                            <div id="sortDropdownMenu" class="dropdown-menu slide-down dropdown-menu-catalog" aria-labelledby="sortDropdown">
+                                                <h4 class="dropdown-menu-header">@Translation.Get("Msg.SortBy")</h4>
+                                                <ul>
+                                                    <li data-bind="click: function() { currentSortAscendingState(true); }, css: { 'selected': currentSortAscendingState() }">
+                                                        <span class="sap-icon">&#xe05b;</span><a href="#" data-bind="executeOnEnter: function(){$element.$parent.click()}">@Translation.Get("Msg.Ascending")</a>
+                                                    </li>
+                                                    <li data-bind="click: function() { currentSortAscendingState(false); }, css: { 'selected': !currentSortAscendingState() },  executeOnEnter: function(){$element.click()}">
+                                                        <span class="sap-icon">&#xe05b;</span><a href="#" data-bind="executeOnEnter: function(){$element.$parent.click()}">@Translation.Get("Msg.Descending")</a>
+                                                    </li>
+                                                    <li class="divider"></li>
+                                                    <li data-bind="click: function() { currentlySortedBy('0') }, css: { 'selected': currentlySortedBy() == '0' }, executeOnEnter: function(){$element.click()}">
+                                                        <span class="sap-icon">&#xe05b;</span><a href="#" data-bind="executeOnEnter: function(){$element.$parent.click()}">@Translation.Get("Msg.Name")</a>
+                                                    </li>
+                                                    <li data-bind="click: function() { currentlySortedBy('1') }, css: { 'selected': currentlySortedBy() == '1' }, executeOnEnter: function(){$element.click()}">
+                                                        <span class="sap-icon">&#xe05b;</span><a href="#" data-bind="executeOnEnter: function(){$element.$parent.click()}">@Translation.Get("Msg.PartNumber")</a>
+                                                    </li>
+                                                    <!-- Comment out below to remove from default template -->
+                                                    <!--
+                                                    <li data-bind="click: function() { currentlySortedBy('2') }, css: { 'selected': currentlySortedBy() == '2' }, executeOnEnter: function(){$element.click()}">
+                                                        <span class="sap-icon">&#xe05b;</span><a href="#" data-bind="executeOnEnter: function(){$element.$parent.click()}">@Translation.Get("Msg.ProductTypeName")</a>
+                                                    </li>
+                                                    <li data-bind="click: function() { currentlySortedBy('4') }, css: { 'selected': currentlySortedBy() == '4' }, executeOnEnter: function(){$element.click()}">
+                                                        <span class="sap-icon">&#xe05b;</span><a href="#" data-bind="executeOnEnter: function(){$element.$parent.click()}">@Translation.Get("Msg.Rank")</a>
+                                                    </li>
+                                                    <li data-bind="click: function() { currentlySortedBy('3') }, css: { 'selected': currentlySortedBy() == '3' }, visible: canFilterAndSortByPrice, executeOnEnter: function(){$element.click()}">
+                                                        <span class="sap-icon">&#xe05b;</span><a href="#" data-bind="executeOnEnter: function(){$element.$parent.click()}">@Translation.Get("Msg.Price")</a>
+                                                    </li>
+                                                    -->
+                                                    <li class="sort-list-footer">
+                                                        <button class="btn btn-primary fiori3-btn-primary" data-bind="click: sortChangeHandler,  executeOnEnter: function(){$element.click()}">@Translation.Get("Msg.Save")</button>
+                                                        <button class="btn btn-tertiary fiori3-btn-tertiary close-btn">@Translation.Get("Msg.Cancel")</button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <!-- Toggle view -->
+                                    <li class="toolbar-action toolbar-action-toogle-view">
+                                        <div class="btn-group view-control fiori3-view-control">
+                                            <div role="button" tabindex="0" id="catalog-view-switch-toggle" aria-label="@Translation.GetJS("Catalog.ToggleView")" data-bind="click: function (data) { currentTemplate() == 'listTemplate' ? data.changeTemplate('tabularTemplate') : data.changeTemplate('listTemplate') }, tooltip: { title: '@Translation.GetJS("Catalog.ToggleView")' }, executeOnEnter: function(){$element.click()}">
+                                                <span class="sap-icon">&#xe0bc;</span>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <!-- Guided Selling -->
+                                    <li class="toolbar-action toolbar-action-guided-selling dropdown guided-selling" id="guidedSellingContainer" data-bind="visible: abs().length > 0, css: { 'dropdown-arrow-padding': abs().length > 1 }">
+
+                                        <!-- ko if: abs().length === 1 -->
+                                        <div id="guidedSellingDropdown" data-bind="foreach: abs">
+                                            <div role="button" tabindex="0" data-bind="click: $data.activateAbs, executeOnEnter: function() { $element.click() }" class="flex">
+                                                <span data-bind="text: $root.categoryName" class="guided-selling-category-single"></span><span class="guided-selling-label">@Translation.Get("xmlGuidedSelling")</span>
+                                            </div>
+                                        </div>
+                                        <!-- /ko -->
+                                        <!-- ko if: abs().length > 1 -->
+                                        <span role="button" aria-haspopup="true" tabindex="0" id="guidedSellingDropdown" data-toggle='dropdown' class="guided-selling-dropown-toggle dropdown-toggle flex" data-bind="executeOnEnter: function() { $element.click() }">
+                                            <span data-bind="text: categoryName" class="guided-selling-category"></span>
+                                            <span class="guided-selling-label">@Translation.Get("xmlGuidedSelling")</span>
+                                            <span class="sap-icon">&#xe1e2;</span>
+                                        </span>
+                                        <ul id="absDropdown" class="dropdown-menu" role="menu" data-bind="foreach: abs" aria-labelledby="guidedSellingDropdown">
+                                            <li data-bind="css: { activeAbs: isActive }">
+                                                <a href="#" data-bind="text: name, click: activateAbs, executeOnEnter: function() { $element.click() }"></a>
+                                            </li>
+                                        </ul>
+                                        <!-- /ko -->
+
+                                    </li>
+
+                                    <!-- All Products -->
+                                    <!-- ko ifnot : shouldShowProducts -->
+                                    <li class="toolbar-action toolbar-action-all-products">
+                                        <div class="btn-group fiori3-show-products">
+                                            <div role="button" tabindex="0" aria-label="@Translation.GetJS("View.CatalogPage.ShowAllProducts")" data-bind="click: showAllProducts, tooltip: { title: '@Translation.GetJS("View.CatalogPage.ShowAllProducts")' }, executeOnEnter: function(){$element.click()}">
+                                                <span class="sap-icon">&#xe214;</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <!-- /ko -->
+                                </ul>
+
+                            </div>
+                            <div class="full-width catalog-pills-container">
+                                @* filter pills *@
+                                <div class="filter-pills-container clearfix" data-bind="visible: hasFilterApplied">
+                                    <ul>
+                                        <!-- ko foreach : activeFilters -->
+                                        <li>
+                                            <span class="filter-pills">
+                                                <span data-bind="text: label + ': ' + value()"></span>
+                                                <a href="#" data-bind="click: remove, attr: { 'aria-label': '@Translation.Get("xsltRemove")' + ' ' + value() + ' ' + '@Translation.Get("xsltFilter")' }, tooltip: { title: '@Translation.Get("xsltRemove")' + '@Translation.Get("xsltFilter")' }" class="sap-icon">&#xe03e;</a>
+                                            </span>
+                                        </li>
+                                        <!-- /ko -->
+                                        <li>
+                                            <a href="#" class="clear-filters" data-bind="click: clearAllFilters, visible: hasFilterApplied">@Translation.Get("Msg.ClearAll")</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                @*ProductComparison*@
+                                <div data-bind="visible: compareProductsEnabled && comparisonProducts().length > 0" class="compare-products affix-top">
+                                    <div class="divider"></div>
+                                    <div data-bind="visible: comparisonProducts().length > 0">
+                                        <ul class="breadcrumb mobile-breadcrumbs product-comparison-breadcrumbs" aria-label="@Translation.Get("Catalogue.SelectedProductComparison")">
+                                            <li>
+                                                <label>@Translation.Get("Catalogue.SelectedProductComparison"):</label>
+                                            </li>
+                                            <!-- ko foreach : comparisonProducts -->
+                                            <li>
+                                                <span class="filter-pills">
+                                                    <span data-bind="text: value"></span>
+                                                    <a href="#" data-bind="click: remove, attr: { id: 'filterProduct_' + key, 'aria-label': '@Translation.Get("xsltRemove")' + ' ' + value }, tooltip: { title: '@Translation.Get("xsltRemove")' }" class="sap-icon">&#xe03e;</a>
+                                                </span>
+                                            </li>
+                                            <!-- /ko -->
+                                            <li class="button-container" data-bind="visible: comparisonProducts().length > 1">
+                                                <button id="productComparisonButton" class="btn btn-primary fiori3-btn-primary btn-xs" data-bind="click: compareProducts">@Translation.Get("Catalogue.ProductComparison")</button>&nbsp;
+                                                <a href="#" class="clear-filters" data-bind="click: clearComparison">@Translation.Get("Msg.ClearAll")</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            @*Categories*@
+                            <div id="catalogGridContainer" class="catalog-main">
+                                <div data-bind="visible: shouldShowSubcategories() && subCategories().length > 0">
+                                    <!-- ko if: !hideCategoriesWithinCatalog && !displayProductFirst -->
+                                    <div class="clearfix"></div>
+                                    <div class="col-md-12 categories-container clearfix">
+                                        <!-- ko template: { name: 'categoriesTemplate' } -->
+                                        <!-- /ko -->
+                                    </div>
+                                    <!-- /ko -->
+                                </div>
+                                <!-- ko if: (shouldShowProducts() && hasProducts()) || (!hasProducts() && shouldShowSubcategories() && !subCategories().length > 0) || (hasFilterApplied() && !hasProducts()) -->
+                                <h3 class="catalog-page-heading hidden" data-bind="css: { hidden : displayProductFirst }">@Translation.Get("xmlProducts")</h3>
+                                <!-- /ko -->
+                                <!-- ko if : shouldShowProducts() && hasProducts() -->
+                                <!-- ko template: { name: 'product-' + currentTemplate() } -->
+                                <!-- /ko -->
+                                <div class="col-md-12 flex fiori3-pagination-container" data-bind="visible: hasProducts() || subCategories().length > 0">
+                                    @*Products paging*@
+                                    <div id="catalogPager" class="fiori3-items-per-page-container">
+                                        <div id="itemsPerPageDropdown" data-toggle="dropdown" data-bind="click: checkDropdownPosition, event: { keyup: function() { pagerDropdownFocus(event); }}">
+                                            <button id="pageSize" class="page-size">
+                                                <span data-bind="text: pageSize" class="items-per-page-number"></span>
+                                            </button>
+                                        </div>
+                                        <span id="itemsPerPageDropdownMenuLabel">@Translation.Get("Pager.ItemsPerPage")</span>
+                                        <div id="itemsPerPageDropdownMenu" class="dropdown-menu" aria-labelledby="itemsPerPageDropdown" aria-describedby="itemsPerPageDropdownMenuLabel">
+                                            <ul>
+                                                <li data-bind="click: function() { pageSize(5); }, css: { 'selected': pageSize() === 5 }"><a href="#" data-bind="event: { keyup: function() { changePage(event, 5); }}">5</a></li>
+                                                <li data-bind="click: function() { pageSize(10); }, css: { 'selected': pageSize() === 10 }"><a href="#" data-bind="event: { keyup: function() { changePage(event, 10); }}">10</a></li>
+                                                <li data-bind="click: function() { pageSize(20); }, css: { 'selected': pageSize() === 20 }"><a href="#" data-bind="event: { keyup: function() { changePage(event, 20); }}">20</a></li>
+                                                <li data-bind="click: function() { pageSize(50); }, css: { 'selected': pageSize() === 50 }"><a href="#" data-bind="event: { keyup: function() { changePage(event, 50); }}">50</a></li>
+                                                <li data-bind="click: function() { pageSize(100); }, css: { 'selected': pageSize() === 100 }"><a href="#" data-bind="event: { keyup: function() { changePage(event, 100); }}">100</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <ul class="fiori3-pagination fiori3-input-group">
+                                        <li aria-label="@Translation.Get("CatalogPage.Pager.FirstPage")" data-bind="css: { disabled: !hasPreviousPage() }, tooltip: { title: '@Translation.Get("CatalogPage.Pager.FirstPage")', placement: 'auto top' }"><span data-bind="click: firstPage" class="sap-icon-extended"><a href="#" data-bind="attr: { tabindex: hasPreviousPage() ? '0' : '-1' }">&#xf162;</a></span></li>
+                                        <li aria-label="@Translation.Get("CatalogPage.Pager.PreviousPage")" data-bind="css: { disabled: !hasPreviousPage() }, tooltip: { title: '@Translation.Get("CatalogPage.Pager.PreviousPage")', placement: 'auto top' }"><span data-bind="click: previousPage" class="sap-icon"><a href="#" data-bind="attr: { tabindex: hasPreviousPage() ? '0' : '-1' }">&#xe067;</a></span></li>
+                                        <li class="pages"><input aria-label="@Translation.GetJS("Admin.Responsive.Page")" id="pageNumberInput" data-bind="valueUpdatedOnEnter: pageNumber, valueUpdate: ['afterkeydown'], event: { change: updatePageNumber }, validateInput: { val: pageNumber, event: 'keypress input blur' }" /> / <span data-bind="text: totalNumberOfPages()"></span></li>
+                                        <li aria-label="@Translation.Get("CatalogPage.Pager.NextPage")" data-bind="css: { disabled: !hasNextPage() }, tooltip: { title: '@Translation.Get("CatalogPage.Pager.NextPage")', placement: 'auto top' }"><span data-bind="click: nextPage" class="sap-icon"><a href="#" data-bind="attr: { tabindex: hasNextPage() ? '0' : '-1' }">&#xe066;</a></span></li>
+                                        <li aria-label="@Translation.Get("CatalogPage.Pager.LastPage")" data-bind="css: { disabled: !hasNextPage() }, tooltip: { title: '@Translation.Get("CatalogPage.Pager.LastPage")', placement: 'auto top' }"><span data-bind="click: lastPage" class="sap-icon-extended"><a href="#" data-bind="attr: { tabindex: hasNextPage() ? '0' : '-1' }">&#xf163;</a></span></li>
+                                    </ul>
+                                </div>
+                                <!-- /ko -->
+                                <div class="clearfix"></div>
+                                <div class="alert alert-warning" data-bind="visible: shouldAlertThatNoProductAreFound">
+                                    <i class="fa fa-exclamation-circle"></i>&nbsp;@Translation.Get("Msg.NoProductsFound") <a href="#" data-bind="visible: categoryId, click: goHome">@Translation.Get("Msg.GoHome")</a> <a href="#" data-bind="    visible: hasFilterApplied, click: clearAllFilters">@Translation.Get("Msg.ClearAllFilters")</a>
+                                </div>
+
+                                <div class="alert alert-warning" data-bind="visible: shouldAlertThatNoProductAreInCategory">
+                                    <i class="fa fa-exclamation-circle"></i>&nbsp;This category has no products nor subcategories.
+                                </div>
+                                @*Categories*@
+                                <div data-bind="visible: shouldShowSubcategories() && subCategories().length > 0" class="subcategories clearfix">
+                                    <!-- ko if: !hideCategoriesWithinCatalog && displayProductFirst -->
+                                    <h3 class="catalog-page-heading" data-bind="visible: hasProducts()">@Translation.Get("xmlCategories")</h3>
+                                    <div class="clearfix"></div>
+                                    <div class="col-md-12">
+                                        <!-- ko template: { name: 'categoriesTemplate' } -->
+                                        <!-- /ko -->
+                                    </div>
+                                    <!-- /ko -->
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+            @Html.Partial("~/Views/Favourites/AddToFavoritesDialogTemplate.cshtml")
+            <!-- ko if: allowCatalogueComparing && catalogAllowViewDetails == 1 -->
+            <script type="text/html" id="CompareProductsModal">
+                <div class="modal fade" tabindex="-1" role="dialog" id="AddRowModal" aria-labelledby="AddRowModalLabel" aria-hidden="true">
+                    <div class="modal-dialog fiori3-modal-dialog compare-page">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button aria-label="@Translation.Get("Msg.Close")" type="button" class="close close-dialog-button fiori3-icon-button" data-dismiss="modal" data-bind="executeOnEnter: function() { closeProductComparison() }, tooltip: { title: '@Translation.Get("Msg.Close")', placement: 'auto top' }"><span class="sap-icon">&#xe03e;</span></button>
+                                <h3>@Translation.Get("ProductComparison.Title")</h3>
+                            </div>
+                            <div class="modal-body">
+                                <div class="compare-container">
+                                    @Html.PartialWithNameAsComment("~/Views/CompareProducts/CompareProductsTemplate.cshtml")
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="closeCompareProductsButton" class="btn btn-tertiary fiori3-btn-tertiary" data-dismiss="modal" data-bind="executeOnEnter: function() { closeProductComparison(); }">@Translation.Get("Msg.Close")</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </script>
+            <!-- /ko -->
+        </div>
+    </div>
+</div>
+
+@* LIST VIEW *@
+<script type="text/html" id="product-listTemplate">
+    <table class="fiori3-products-list-table list-view-focus-helper">
+        <thead>
+            <tr>
+                <th scope="col">@Translation.Get("Catalogue.ListView.ProductName")</th>
+                <th scope="col">@Translation.Get("Msg.Category")</th>
+                <!--<th scope="col">@Translation.Get("Msg.Type")</th>-->
+                <th scope="col" data-bind="css: { 'fiori3-sb-products-price-column': hasSBPRoductWithRatePlan }">@Translation.Get("Catalogue.ListView.Price")</th>
+                <th scope="col">@Translation.Get("Catalog.ListView.Actions")</th>
+                <!-- ko if: allowCatalogueComparing -->
+                    <th scope="col">@Translation.Get("xsltAddToCompare")</th>
+                <!-- /ko -->
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: products">
+            <tr class="product-list-detail-view" data-bind="css: { 'add-to-compare': selectedForCompare }, attr: { id: 'prodList' + id }">
+                <td>
+                    <div class="image-on-hover">
+                        <!-- ko if: $parent.viewDetailsEnabled -->
+                        <div class="product-title view-details-enabled" data-bind="attr: { id: 'product_' + id }, click: viewDetails">
+                            <a href="#" class="focus-helper" data-bind="text: name"></a>
+                            <!-- hiding the partnumber here and putting it below the name where the description is by default -->
+                            <!--<span data-bind="visible: partNumber">(<span data-bind="text: partNumber"></span>)</span>-->
+                        </div>
+                        <!-- /ko -->
+                        <!-- ko ifnot: $parent.viewDetailsEnabled -->
+                        <div class="product-title">
+                            <span data-bind="text: name"></span>
+                            <!-- hiding the partnumber here and putting it below the name where the description is by default -->
+                            <!--<span data-bind="visible: partNumber">(<span data-bind="text: partNumber"></span>)</span>-->
+                        </div>
+                        <!-- /ko -->
+                        <!-- ko if: $parent.enableProductFavorites -->
+                        <span data-bind="visible: !isDiscontinued && !isReplaced && isFavoriteVisible() && !isConfigurableExternal" class="favorites-icon">
+                            <a href="#" class="product-title" data-bind="executeOnEnter: handleClickOnFavorites, click: handleClickOnFavorites, css: { 'in-favorites': isAddedToFavorites(), 'no-favorite': !isAddedToFavorites() }, attr: { 'aria-label': favoritesTooltipTitle, id: 'favorites_' + id }, tooltip: { title: favoritesTooltipTitle, placement: 'top' }">
+                                <span class="sap-icon" data-bind="text: isAddedToFavorites() ? '&#xe065;' : '&#xe0a1;'"></span>
+                            </a>
+                        </span>
+                        <!-- /ko -->
+                        <img alt="" class="img-thumbnail" data-bind="attr: { src: imageUrl, alt: imageAltText }" />
+                    </div>
+                    <!-- hiding the description and putting the part number in this location instead -->
+                    <!--<p data-bind="text: description" class="description visible-lg visible-md"></p>-->
+                    <p data-bind="text: partNumber" class="description visible-lg visible-md"></p>
+                </td>
+                <td>
+                    <a href="#" data-bind="text: categoryName, click: activateCategory" class="category-name-cell"></a>
+                </td>
+                <!--
+                <td>
+                    <span data-bind="text: productTypeName"></span>
+                </td>-->
+                <td class="price-column">
+                    <!-- ko if: isSBProduct -->
+                    <!-- ko if: hasRatePlanForMarket -->
+                    <p class="price-tag">
+                        <div class="sb-prices-section">
+                            <div data-bind="text:oneTimePrice"></div>
+                            <div tabindex="0" class="sb-price-tag-label" data-bind="text: $parent.useNewQuoteEngine ? '@Translation.Get("SB.Catalog.OneTimeLabel")' : '@Translation.Get("xsltNRC")' "></div>
+                        </div>
+                        <div class="sb-prices-section">
+                            <div data-bind="text:totalRecurringPrice"></div>
+                            <div tabindex="0" class="sb-price-tag-label" data-bind="text: $parent.useNewQuoteEngine ? '@Translation.Get("SB.Catalog.RecurringLabel")' : '@Translation.Get("xsltMRC")' "></div>
+                        </div>
+                    </p>
+                    <!-- /ko -->
+                    <!-- ko ifnot: hasRatePlanForMarket -->
+                    <a tabindex="-1" class="disabledlink sap-icon" data-bind="tooltip: { title: '@Translation.Get(" SB.CatalogProductValidation.NoRatePlanForMarket")', placement: 'right auto' , viewport: '#catalogMainContainer' }">&#xe201;</a>
+                    <!-- /ko -->
+                    <!-- /ko -->
+                    <!-- ko ifnot: isSBProduct -->
+                    <!-- ko if: shouldShowRecurringPrice && !errorMessage() -->
+                    <p class="price-tag">
+                        <div class="sb-prices-section">
+                            <div data-bind="text: price"></div>
+                            <div class="sb-price-tag-label" data-bind="text: $parent.useNewQuoteEngine ? '@Translation.Get("SB.Catalog.OneTimeLabel")' : '@Translation.Get("xsltNRC")' "></div>
+                        </div>
+                        <div class="sb-prices-section">
+                            <div data-bind="text: totalRecurringPrice"></div>
+                            <div class="sb-price-tag-label" data-bind="text: $parent.useNewQuoteEngine ? '@Translation.Get("SB.Catalog.RecurringLabel")' : '@Translation.Get("xsltMRC")' "></div>
+                        </div>
+                    </p>
+                    <!-- /ko -->
+                    <!-- ko if: !shouldShowRecurringPrice && !errorMessage() -->
+                    <label data-title="Price" data-bind="text: price"></label>
+                    <!-- /ko -->
+                    <!-- /ko -->
+                    <!-- ko if: errorMessage() -->
+                    <label data-title="Error Message" data-bind="text: errorMessage()"></label>
+                    <!-- /ko -->
+                </td>
+                <td class="actions-column">
+                    <div data-bind="visible: isDiscontinued || isReplaced">
+                        <div class="alert alert-warning small" data-bind="visible: isDiscontinued">@Translation.Get("Catalogue.DiscontinuedProduct")</div>
+                        <div class="alert alert-warning small" data-bind="visible: isReplaced">
+                            @Translation.Get("Catalogue.ProductReplacement")
+                            <br />
+                            <a href="#" data-bind="click: viewReplacement, attr: { id: 'replacement_' + id }">@Translation.Get("Catalogue.LinkToProductReplacement")</a>
+                        </div>
+                    </div>
+                    <div class="actions-container pull-right">
+                        <div data-bind="visible:hasRatePlanForMarket() || !isSBProduct()">
+                            <div class="flex-wrap flex-end" data-bind="visible: !isDiscontinued && !isReplaced">
+                                <!-- ko ifnot: errorMessage() -->
+                                <div class="flex-wrap flex-end" data-bind="visible: !isConfigurableExternal">
+                                    <input aria-label="@Translation.Get("Catalogue.ListView.Quantity")" class="form-control" type="text" data-bind="value: quantity, enable: canAlterQuantity, validateInput: { val: quantity, event: 'keypress input blur' }, attr: { id: 'quantity' + id }" />
+                                    <div class="fiori3-catalog-page-add-to-quote-div" data-bind="attr: { 'aria-label': addBtnDisabledExplanation }, tooltip: { title: addBtnDisabledExplanation, html: true }, attr: { tabindex: !canAddToQuote ? '0' : '-1' }" data-container="body">
+                                        <button class="btn btn-secondary fiori3-btn-secondary add-button" data-bind="click: addToQuote, css: { disabled: !canAddToQuote }, attr: { tabindex: canAddToQuote ? '0' : '-1', disabled: !canAddToQuote }">@Translation.Get("Msg.Add")</button>
+                                    </div>
+                                </div>
+                                <!-- /ko -->
+                                <div class="config-button" data-bind="css: { 'disabled-button': !canConfigureProdWithoutCreatingQuote() }, tooltip: { title: !canConfigureProdWithoutCreatingQuote() ? '@Translation.GetJS("Msg.DisabledConfigureButtonTooltip")' : '' , placement: 'auto top' }, attr: { tabindex: !canConfigureProdWithoutCreatingQuote() ? '0' : '-1' }">
+                                    <div class="configure">
+                                        <a class="btn btn-secondary fiori3-btn-secondary" data-bind="attr: { href: configuratorUrl, disabled: !canConfigureProdWithoutCreatingQuote(), tabindex: canConfigureProdWithoutCreatingQuote() ? '0' : '-1' }, visible: canConfigure">@Translation.Get("Msg.Configure")</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                </td>
+                <!-- ko if: $parent.allowCatalogueComparing -->
+                <td class="compare-cell">
+                    <label data-bind="visible: isCompareable, attr: { 'aria-label': isCompareable ? '@Translation.GetJS("Catalogue.ListView.AddToCompare")' : '@Translation.Get("Msg.NoValue")'}" class="fiori3-checkbox-group">
+                        <input type="checkbox" data-bind="checked: selectedForCompare">
+                        <span></span>
+                    </label>
+                </td>
+                <!-- /ko -->
+            </tr>
+        </tbody>
+    </table>
+
+    @* PRODUCTS LIST MOBILE VIEW *@
+    <div data-bind="foreach: products" class="col-md-12 clearfix fiori3-products-list-table-small-screens">
+        <article class="catalog-table col-md-12 row" data-bind="css: { 'add-to-compare': selectedForCompare}">
+            <div>
+                <div class="image-on-hover clearfix pull left">
+                    <!-- ko if: $parent.viewDetailsEnabled -->
+                    <a href="#" class="product-title view-details-enabled focus-helper" data-bind="text: name, click: viewDetails"></a>
+                    <!-- hiding the partnumber here and putting it below the name where the description is by default -->
+                    <!--<span class="part-number view-details-enabled" data-bind="visible: partNumber, click: viewDetails">(<span data-bind="text: partNumber"></span>)</span>-->
+                    <!-- /ko -->
+                    <!-- ko ifnot: $parent.viewDetailsEnabled -->
+                    <span class="product-title" data-bind="text: name"></span>
+                    <!-- hiding the partnumber here and putting it below the name where the description is by default -->
+                    <!--<span data-bind="visible: partNumber">(<span data-bind="text: partNumber"></span>)</span>-->
+                    <!-- /ko -->
+                    <img alt="" class="img-thumbnail" data-bind="visible: imageUrl, attr: { src: imageUrl, alt: imageAltText }" />
+                    <!-- ko if: $parent.enableProductFavorites -->
+                    <span class="favorites-icon-small-screens favorites-icon" data-bind="visible: !isDiscontinued && !isReplaced && isFavoriteVisible() && !isConfigurableExternal">
+                        <a href="#" data-bind="click: handleClickOnFavorites, css: { 'in-favorites': isAddedToFavorites(), 'no-favorite': !isAddedToFavorites() }, attr: { 'aria-label': favoritesTooltipTitle }, tooltip: { title: favoritesTooltipTitle, placement: 'top' }">
+                            <span class="sap-icon" data-bind="text: isAddedToFavorites() ? '&#xe065;' : '&#xe0a1;'"></span>
+                        </a>
+                    </span>
+                    <!-- /ko -->
+                </div>
+                <!-- hiding the description and putting the part number in this location instead -->
+                <!--<p data-bind="text: description" class="clearfix description visible-lg visible-md"></p>-->
+                <p data-bind="text: partNumber" class="clearfix description visible-lg visible-md"></p>
+
+                <!-- ko if: isInPromotion && productPromotions -->
+                <div data-bind="attr: {'id': 'promosInfo_' + id}">
+                    <span data-bind="html: productPromotions()[0].tooltip"></span>
+                    <!-- ko if: productPromotions().length > 1 -->
+                    <div class="panel-collapse collapse" data-bind="attr: {'id': 'showMorePromoInfoList_' + id}, foreach: productPromotions">
+                        <!-- ko if: $index() != 0 -->
+                        <div style="margin-top: 2px" data-bind="html: tooltip"></div>
+                        <!-- /ko -->
+                    </div>
+                    <span><a data-toggle="collapse" data-bind="attr : {'href': '#showMorePromoInfoList_' + id }, text: showAllPromotions() ? '@Translation.GetJS("View.CatalogPage.CollapsePromo")' : '@Translation.GetJS("View.CatalogPage.ExpandPromo")', click: togglePromos" data-parent="#promosInfo" aria-expanded="true" aria-controls="showMorePromoInfoList"></a></span>
+                    <!-- /ko -->
+                </div>
+                <!-- /ko -->
+            </div>
+            <div class="price-category-type-container">
+                <!-- ko ifnot: isSBProduct -->
+                <!-- ko if: shouldShowRecurringPrice && isPriceVisible-->
+                <p class="price-tag pull-left">
+                    <div class="sb-prices-section">
+                        <div data-bind="text: price"></div>
+                        <div class="sb-price-tag-label" data-bind="text: $parent.useNewQuoteEngine ? '@Translation.Get("SB.Catalog.OneTimeLabel")' : '@Translation.Get("xsltNRC")' "></div>
+                    </div>
+                    <div class="sb-prices-section">
+                        <div data-bind="text: totalRecurringPrice"> / </div>
+                        <div class="sb-price-tag-label" data-bind="text: $parent.useNewQuoteEngine ? '@Translation.Get("SB.Catalog.RecurringLabel")' : '@Translation.Get("xsltMRC")' "></div>
+                    </div>
+                </p>
+                <!-- /ko -->
+                <!-- ko if: !shouldShowRecurringPrice && isPriceVisible -->
+                <p>
+                    <label data-title="Price" data-bind="text: price" class="label label-success mobile-price"></label>
+                </p>
+                <!-- /ko -->
+                <!-- /ko -->
+                <p data-bind="visible: errorMessage()">
+                    <label data-title="Error Message" data-bind="text: errorMessage()" class="label label-success mobile-price"></label>
+                </p>
+                <p class="details-column" data-bind="visible: categoryName"><span>@Translation.Get("Msg.Category")</span> <a href="#" data-bind="text: categoryName, click: activateCategory"></a></p>
+                <p class="details-column" data-bind="visible: productTypeName"><span>@Translation.Get("Msg.Type")</span> <span data-bind="text: productTypeName"></span></p>
+            </div>
+            <div class="actions-container pull-right">
+                <div class="flex-wrap flex-end" data-bind="visible:hasRatePlanForMarket() || !isSBProduct()">
+                    <!-- ko ifnot: errorMessage() -->
+                    <input aria-label="@Translation.Get("Catalogue.ListView.Quantity")" class="form-control" type="text" data-bind="value: quantity, enable: canAlterQuantity, validateInput: { val: quantity, event: 'keypress input blur' }, attr: { id: 'mobile_quantity' + id }" />
+                    <div class="fiori3-catalog-page-add-to-quote-div" data-bind="attr: { 'aria-label': addBtnDisabledExplanation }, tooltip: { title: addBtnDisabledExplanation, html: true }, attr: { tabindex: !canAddToQuote ? '0' : '-1' }" data-container="body">
+                        <button class="btn btn-secondary fiori3-btn-secondary" data-bind="click: addToQuote, css: { disabled: !canAddToQuote }, attr: { tabindex: canAddToQuote ? '0' : '-1', disabled: !canAddToQuote  }">@Translation.Get("Msg.Add")</button>
+                    </div>
+                    <!-- /ko -->
+                    <div class="config-button" data-bind="css: { 'disabled-button': !canConfigureProdWithoutCreatingQuote() }, tooltip: { title: !canConfigureProdWithoutCreatingQuote() ? '@Translation.GetJS("Msg.DisabledConfigureButtonTooltip")' : '' , placement: 'auto top' }, attr: { tabindex: !canConfigureProdWithoutCreatingQuote() ? '0' : '-1' }">
+                        <div class="configure">
+                            <a class="btn btn-secondary fiori3-btn-secondary" data-bind="attr: { href: configuratorUrl, disabled: !canConfigureProdWithoutCreatingQuote(), tabindex: canConfigureProdWithoutCreatingQuote() ? '0' : '-1' }, visible: canConfigure">@Translation.Get("Msg.Configure")</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 action-column col-xs-12 col-sm-12" data-bind="visible: !isDiscontinued && !isReplaced">
+                <div data-bind="visible: isCompareable" class="pull-right compare">
+                    <label class="small middle">
+                        <input class="custom compare-checkbox" type="checkbox" data-bind="checked: selectedForCompare" aria-label="@Translation.GetJS("Catalogue.ListView.AddToCompare")">
+                        <span class="lbl">@Translation.Get("xsltAddToCompare")</span>
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-2 action-column col-sm-12 col-xs-12 alert alert-warning small" data-bind="visible: isDiscontinued">@Translation.Get("Catalogue.DiscontinuedProduct")</div>
+            <div class="col-md-2 action-column  col-sm-12 col-xs-12 alert alert-warning small" data-bind="visible: isReplaced">
+                @Translation.Get("Catalogue.ProductReplacement")
+                <br />
+                <a href="#" data-bind="click: viewReplacement, attr: { id: 'replacement_' + id }">@Translation.Get("Catalogue.LinkToProductReplacement")</a>
+            </div>
+        </article>
+    </div>
+</script>
+
+@* PRODUCTS GRID VIEW *@
+<script type="text/html" id="product-tabularTemplate">
+    <div data-bind="foreach: products" class="col-md-12 clear-padding product-details-main-container">
+        <article class="product-detail-view col-xl-3 col-lg-4 col-md-6 col-sm-6 col-xs-12" data-bind="attr: { id: 'prodTabular' + id }">
+            <div class="product-box" data-bind="css: { 'add-to-compare': selectedForCompare}">
+                <div class="clearfix"></div>
+                <div class="image-holder visible-lg visible-md">
+                    <!-- ko if: $parent.viewDetailsEnabled -->
+                    <a data-bind="click: viewDetails">
+                        <img data-bind="attr: { src: imageUrl, alt: imageAltText }" class="img-thumbnail" />
+                    </a>
+                    <!-- /ko -->
+                    <!-- ko ifnot: $parent.viewDetailsEnabled -->
+                    <img data-bind="attr: { src: imageUrl, alt: imageAltText }" class="img-thumbnail not-clickable" />
+                    <!-- /ko -->
+                </div>
+                <!-- ko template: { name: 'favorites-region-tabular'} -->
+                <!-- /ko -->
+                <h3 class="product-title-container clearfix">
+                    <div class="ellipsis example pull-left vertical-align">
+                        <!-- ko if: $parent.viewDetailsEnabled -->
+                        <a href="#" class="product-title view-details-enabled tooltip-if-long ellipsis example focus-helper" data-bind="text: name, click: viewDetails, attr: { 'aria-label': name, id: 'product_' + id  }, tooltip: { title: name, placement: 'auto top' }"></a>
+                        <!-- hiding the partnumber here and putting it below the name where the description is by default -->
+                        <!--<span data-bind="visible: partNumber, tooltip: { title: partNumber, placement: 'auto top' }" class="view-details-enabled part-number tooltip-if-long ellipsis example">(<span data-bind="text: partNumber, click: viewDetails"></span>)</span>-->
+                        <!-- /ko -->
+                        <!-- ko ifnot: $parent.viewDetailsEnabled -->
+                        <span class="product-title" data-bind="text: name, tooltip: { title: name, placement: 'auto top' }"></span>
+                        <!-- hiding the partnumber here and putting it below the name where the description is by default -->
+                        <!--<span data-bind="visible: partNumber, tooltip: { title: partNumber, placement: 'auto top' }" class="part-number tooltip-if-long ellipsis example">(<span data-bind="text: partNumber"></span>)</span>-->
+                        <!-- /ko -->
+                        <span class="clearfix"></span>
+                    </div>
+                </h3>
+                <div class="clearfix"></div>
+                <div class="description clearfix">
+                    <!-- hiding the description and putting the part number in this location instead -->
+                    <!--<p class="example ellipsis pull-left tooltip-if-long" data-bind="text: description, attr: { 'aria-label': description }, tooltip: { title: description, placement: 'auto top' }"></p>-->
+                    <p class="example ellipsis pull-left tooltip-if-long" data-bind="text: partNumber, attr: { 'aria-label': description }, tooltip: { title: partNumber, placement: 'auto top' }"></p>
+                </div>
+                <div class="price-category-container">
+                    <!-- ko ifnot: isSBProduct -->
+                    <!-- ko if: shouldShowRecurringPrice && isPriceVisible -->
+                    <p class="price-tag pull-left">
+                        <div class="sb-prices-section">
+                            <div data-bind="text: price "></div>
+                            <div class="sb-price-tag-label" data-bind="text: $parent.useNewQuoteEngine ? '@Translation.Get("SB.Catalog.OneTimeLabel")' : '@Translation.Get("xsltNRC")' "></div>
+                        </div>
+                        <div class="sb-prices-section">
+                            <div data-bind="text: totalRecurringPrice "> / </div>
+                            <div class="sb-price-tag-label" data-bind="text: $parent.useNewQuoteEngine ? '@Translation.Get("SB.Catalog.RecurringLabel")' : '@Translation.Get("xsltMRC")' "></div>
+                        </div>
+                    </p>
+                    <!-- /ko -->
+                    <!-- ko if: !shouldShowRecurringPrice && isPriceVisible -->
+                    <p class="price-tag pull-left">
+                        <span data-bind="text: price"></span>&nbsp;
+                    </p>
+                    <!-- /ko -->
+                    <!-- /ko -->
+                    <!-- ko if: errorMessage() -->
+                    <p class="price-tag pull-left">
+                        <span class="price-error-message" data-bind="text: errorMessage(), visible: !isDiscontinued && !isReplaced"></span>&nbsp;
+                    </p>
+                    <!-- /ko -->
+                    <!-- ko if: isSBProduct -->
+                    <!-- ko if: hasRatePlanForMarket -->
+                    <p class="price-tag">
+                        <div class="sb-prices-section"><div data-bind="text:oneTimePrice"></div><div class="sb-price-tag-label">@Translation.Get("SB.Catalog.OneTimeLabel")</div></div>
+                        <div class="sb-prices-section"><div data-bind="text:totalRecurringPrice"></div><div class="sb-price-tag-label">@Translation.Get("SB.Catalog.RecurringLabel")</div></div>
+                    </p>
+                    <!-- /ko -->
+                    <!-- ko ifnot: hasRatePlanForMarket -->
+                    <div class="alert fiori3-alert-info">@Translation.Get("SB.CatalogProductValidation.NoRatePlanForMarket")</div>
+                    <!-- /ko -->
+                    <!-- /ko -->
+                    <div class="category-name">
+                        <span data-bind="text: categoryName, attr: { 'aria-label': categoryName }, tooltip: { title: categoryName, placement: 'auto top' }" class="tooltip-if-long ellipsis example category"></span>
+                    </div>
+                </div>
+
+                <!-- ko if: isInPromotion && productPromotions -->
+                <div class="promotion-container" data-bind="visible: !isDiscontinued && !isReplaced, attr: {'id': 'promosInfoTab_' + id}">
+                    <span data-bind="html: productPromotions()[0].tooltip"></span>
+                    <!-- ko if: productPromotions().length > 1 -->
+                    <div class="panel-collapse collapse" data-bind="attr: {'id': 'showMorePromoInfo_' + id}, foreach: productPromotions">
+                        <!-- ko if: $index() != 0 -->
+                        <div style="margin-top: 2px" data-bind="html: tooltip"></div>
+                        <!-- /ko -->
+                    </div>
+                    <span><a data-toggle="collapse" data-parent="#promosInfoTab" aria-expanded="true" aria-controls="showMorePromoInfo" data-bind="attr: {'href': '#showMorePromoInfo_' + id}, text: showAllPromotions() ? '...less' : '...more', click: togglePromos"></a></span>
+                    <!-- /ko -->
+                </div>
+                <!-- /ko -->
+
+                <div class="clearfix"></div>
+                <div data-bind="visible: isDiscontinued || isReplaced">
+                    <div class="alert alert-warning small discontinued-product" data-bind="visible: isDiscontinued">@Translation.Get("Catalogue.DiscontinuedProduct")</div>
+                    <div class="alert alert-warning small discontinued-product" data-bind="visible: isReplaced">
+                        @Translation.Get("Catalogue.ProductReplacement")
+                        <br />
+                        <a href="#" data-bind="click: viewReplacement, attr: { id: 'replacement_' + id }">@Translation.Get("Catalogue.LinkToProductReplacement")</a>
+                    </div>
+                </div>
+                <div class="compare-quantity-add-container" data-bind="visible: !isDiscontinued && !isReplaced">
+                    <div data-bind="visible: isCompareable" class="pull-right compare">
+                        <label class="fiori3-checkbox-group">
+                            <input type="checkbox" data-bind="checked: selectedForCompare" aria-label="@Translation.GetJS("Catalogue.ListView.AddToCompare")">
+                            <span>@Translation.Get("xsltAddToCompare")</span>
+                        </label>
+                    </div>
+                    <div data-bind="visible:hasRatePlanForMarket() || !isSBProduct()">
+                        <!-- ko ifnot: errorMessage() -->
+                        <div class="input-group fiori3-input-group qty pull-left flex-container" data-bind="visible: !isDiscontinued && !isReplaced && !isConfigurableExternal">
+                            <input aria-label="@Translation.Get("Catalogue.ListView.Quantity")" class="form-control qty-input-field" type="text" data-bind="value: quantity, enable: canAlterQuantity, validateInput: { val: quantity, event: 'keypress input blur' }, attr: { id: 'quantity' + id }" />
+                            <div class="input-group fiori3-input-group qty"  data-bind="attr: { 'aria-label': addBtnDisabledExplanation }, tooltip: { title: addBtnDisabledExplanation, html: true }, attr: { tabindex: !canAddToQuote ? '0' : '-1' }" data-container="body">
+                                <button class="btn btn-secondary fiori3-btn-secondary add-button" data-bind="click: addToQuote, css: { disabled: !canAddToQuote }, attr: { tabindex: canAddToQuote ? '0' : '-1', disabled: !canAddToQuote }">@Translation.Get("Msg.Add")</button>
+                            </div>
+                        </div>
+                        <!-- /ko -->
+                        <div class="config-button" data-bind="css: { 'disabled-button': !canConfigureProdWithoutCreatingQuote() }, tooltip: { title: !canConfigureProdWithoutCreatingQuote() ? '@Translation.GetJS("Msg.DisabledConfigureButtonTooltip")' : '', placement: 'auto top' }, attr: { tabindex: !canConfigureProdWithoutCreatingQuote() ? '0' : '-1' }">
+                            <a href="#" class="btn btn-secondary fiori3-btn-secondary pull-right" data-bind="attr: { href: configuratorUrl, disabled: !canConfigureProdWithoutCreatingQuote(), tabindex: canConfigureProdWithoutCreatingQuote() ? '0' : '-1' }, visible: canConfigure,">@Translation.Get("Msg.Configure")</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+</script>
+
+<script type="text/html" id="tabularProductInfo">
+    <div class="product-details-popover">
+        <span class="product-title" data-bind="text: name"></span><span data-bind="visible: partNumber">(<span data-bind="text: partNumber"></span>)</span>
+        <p class="clearfix small" data-bind="text: description"></p>
+        <p class="details-column" data-bind="visible: categoryName"><span>@Translation.Get("Msg.Category")</span> <a href="#" class="dismissesPopover" data-bind="text: categoryName, click: activateCategory"></a></p>
+        <p class="details-column" data-bind="visible: productTypeName"><span>@Translation.Get("Msg.Type")</span> <span data-bind="text: productTypeName"></span></p>
+    </div>
+</script>
+
+<script type="text/html" id="categoriesTemplate">
+    <!-- ko if: shouldShowSubcategories -->
+    <!-- ko template: { name: 'categories-' + currentTemplate() } -->
+    <!-- /ko -->
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="categories-listTemplate">
+    <div class="subcategories-list-view list-view-focus-helper">
+        <table class="fiori3-table categories-list-view-table" aria-label="@Translation.Get("Catalog.ListView.TableHeading")">
+            <thead>
+                <tr>
+                    <th scope="col">@Translation.Get("xsltName")</th>
+                    <th scope="col">@Translation.Get("xsltDescription")</th>
+                </tr>
+            </thead>
+            <tbody id="categoriesGridContainer" data-bind="foreach: subCategories">
+                <tr>
+                    <td>
+                        <div class="image-on-hover">
+                            <a href="#" data-bind="text: name, click: activate, attr: {id: 'catList' + id }, event: { keyup: function(id) { $root.openCategoryList(event, id); } }" class="categoryName focus-helper"></a>
+                            <img class="img-thumbnail" data-bind="attr: { src: imageUrl, alt: imageAltText }" />
+                        </div>
+                    </td>
+                    <td>
+                        <div data-bind="text: description"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</script>
+
+<script type="text/html" id="categories-tabularTemplate">
+    <div id="categoriesGridContainer" data-bind="foreach: subCategories">
+        <div tabindex="0" class="categories-tabular focus-helper col-xl-3 col-lg-4 col-md-6 col-sm-6 col-xs-12" data-bind="click: activate, attr: {id: 'catTabular' + id }, event: { keyup: function(id) { $root.openCategoryTabular(event, id); }}">
+            <div class="image-holder visible-lg visible-md">
+                <img class="img-thumbnail" data-bind="attr: { src: imageUrl, alt: imageAltText }" />
+            </div>
+            <h3 class="product-header tooltip-if-long ellipsis example" data-bind="text: name, attr: { 'aria-label': name }, tooltip: { title: name, placement: 'auto top'}"></h3>
+            <p class="product-description tooltip-if-long ellipsis example" data-bind="text: description, tooltip: { title: description, placement: 'auto top'}"></p>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="favorites-region-tabular">
+    <!-- ko if: $parent.enableProductFavorites -->
+    <span class="pull-right favorites-icon">
+        <a href="#" data-bind="visible: !isDiscontinued && !isReplaced && isFavoriteVisible() && !isConfigurableExternal, click: handleClickOnFavorites, css: { 'in-favorites': isAddedToFavorites(), 'no-favorite': !isAddedToFavorites() }, attr: { 'aria-label': favoritesTooltipTitle, id: 'favorites_' + id }, tooltip: { title: favoritesTooltipTitle, placement: 'top' }">
+            <span class="sap-icon" data-bind="text: isAddedToFavorites() ? '&#xe065;' : '&#xe0a1;'"></span>
+        </a>
+    </span>
+    <!-- /ko -->
+</script>
